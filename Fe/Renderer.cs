@@ -217,8 +217,6 @@ namespace Fe
                     uniformsChanged = true;
                 }                
 
-                // TODO: Currently we have a problem that we can not say "these hundred commands use this buffer, then the next hundred commands use a differnet uniforms"
-
                 // Do we need to change the state for the current active program.
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
                 {
