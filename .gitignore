@@ -1,0 +1,11 @@
+*.suo
+*.sln
+*.csproj
+*.user
+*.sdf
+*.speccache
+*.userprefs
+bin/
+obj/
+Debug/
+Release/

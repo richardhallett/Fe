@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExternalProject Name="Fe.Depends">
+
+  <Project
+    Name="Nml"
+    Guid="ccbbf4f7-51c1-4293-8c42-7ffc573b1ca0"
+    Path="Depends/nml/nml/nml.csproj">
+  </Project>
+
+  <Binary Name="OpenTK" Path="Depends/OpenTK.dll" />
+
+</ExternalProject>

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Name="Fe.Forms" Path="Fe.Forms" Type="Library">
+  <Properties>
+    <FrameworkVersions>
+      <Platform Name="Windows">
+        <Version>4.5</Version>
+      </Platform>
+      <Platform Name="Linux">
+        <Version>4.5</Version>
+      </Platform>
+    </FrameworkVersions>
+    <CustomDefinitions>
+      <Platform Name="Linux">PLATFORM_LINUX</Platform>
+      <Platform Name="Windows">PLATFORM_WINDOWS</Platform>
+    </CustomDefinitions>
+  </Properties>
+  <References>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </References>
+  <Files>
+    <Compile Include="Application.cs" />
+    <Compile Include="GraphicsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </Files>
+</Project>
