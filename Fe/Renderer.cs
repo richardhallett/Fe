@@ -278,7 +278,26 @@ namespace Fe
                                     }
                                 }
                             }
-                        }
+                            else if (uniform.Key.Type == UniformType.Uniform1f)
+                            {
+                                GL.Uniform1(uniformLocation, (float)uniform.Value);
+                            }
+                            else if (uniform.Key.Type == UniformType.Uniform2f)
+                            {
+                                float[] value = uniform.Value as float[];
+                                GL.Uniform2(uniformLocation, value[0], value[1]);
+                            }
+                            else if (uniform.Key.Type == UniformType.Uniform3f)
+                            {
+                                float[] value = uniform.Value as float[];
+                                GL.Uniform3(uniformLocation, value[0], value[1], value[2]);
+                            }
+                            else if (uniform.Key.Type == UniformType.Uniform4f)
+                            {
+                                float[] value = uniform.Value as float[];
+                                GL.Uniform4(uniformLocation, value[0], value[1], value[2], value[3]);
+                            }
+                        }                        
                     }
 
                     // Predefined locations
@@ -297,7 +316,6 @@ namespace Fe
                     {
                         float* matrix_ptr = &matrix.M11;
                         {
-                            //GL.UniformMatrix4fv(predefinedModelUniformLocation, 1, false, matrix_ptr);
                             GL.UniformMatrix4(predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }
                     }                    
