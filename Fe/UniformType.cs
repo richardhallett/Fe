@@ -7,16 +7,13 @@ using System.Threading.Tasks;
 namespace Fe
 {
     /// <summary>
-    /// A Uniform is a constant variable passed to shaders.
+    /// The types of uniform constants.
     /// </summary>
-    public interface IUniform
+    public enum UniformType
     {
         /// <summary>
-        /// Gets or sets the name of the uniform.
+        /// A 4x4 floating point matrix
         /// </summary>
-        /// <value>
-        /// The name.
-        /// </value>
-        string Name { get; set; }
+        Matrix4x4f
     }
 }

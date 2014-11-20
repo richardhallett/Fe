@@ -16,7 +16,7 @@ namespace Fe
         /// </summary>
         public UniformBuffer()
         {
-            _uniforms = new Dictionary<IUniform, object>();
+            _uniforms = new Dictionary<Uniform, object>();
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Fe
         /// </summary>
         /// <param name="uniform">The uniform.</param>
         /// <param name="matrix">The matrix.</param>
-        public void Set(Uniform4x4f uniform, Nml.Matrix4x4 matrix)
+        public void Set(Uniform uniform, Nml.Matrix4x4 matrix)
         {
             this._uniforms[uniform] = matrix;
         }
@@ -32,6 +32,6 @@ namespace Fe
         /// <summary>
         /// The _uniforms
         /// </summary>
-        internal Dictionary<IUniform, object> _uniforms;
+        internal Dictionary<Uniform, object> _uniforms;
     }
 }

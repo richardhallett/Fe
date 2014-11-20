@@ -7,17 +7,19 @@ using System.Threading.Tasks;
 namespace Fe
 {
     /// <summary>
-    /// A uniform for describing 4x4 floating point matrix data.
+    /// A Uniform is a constant variable passed to shaders.
     /// </summary>
-    public class Uniform4x4f : IUniform
+    public class Uniform
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Uniform4x4f"/> class.
+        /// Initializes a new instance of the <see cref="Uniform" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
-        public Uniform4x4f(string name)
+        /// <param name="type">The type.</param>
+        public Uniform(string name, UniformType type)
         {
             this.Name = name;
+            this.Type = type;
         }
 
         /// <summary>
@@ -27,5 +29,13 @@ namespace Fe
         /// The name.
         /// </value>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type of the uniform.
+        /// </summary>
+        /// <value>
+        /// The type.
+        /// </value>
+        public UniformType Type { get; set; }
     }
 }

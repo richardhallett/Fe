@@ -267,7 +267,7 @@ namespace Fe
                     {                        
                         if (program.Uniforms.TryGetValue(uniform.Key.Name, out uniformLocation))
                         {
-                            if (uniform.Key.GetType() == typeof(Uniform4x4f))
+                            if (uniform.Key.Type == UniformType.Matrix4x4f)
                             {
                                 var matrix = (Nml.Matrix4x4)uniform.Value;
                                 unsafe

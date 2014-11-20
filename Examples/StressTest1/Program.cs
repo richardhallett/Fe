@@ -105,7 +105,7 @@ namespace StressTest1
             var ib = new Fe.IndexBuffer(indexPositions);
 
             // Create shared uniforms
-            Fe.Uniform4x4f projectionUniform = new Fe.Uniform4x4f("projectionMatrix");
+            Fe.Uniform projectionUniform = new Fe.Uniform("projectionMatrix", Fe.UniformType.Matrix4x4f);
 
             Fe.UniformBuffer sharedUniforms = new Fe.UniformBuffer();
 
