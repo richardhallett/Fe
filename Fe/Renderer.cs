@@ -91,6 +91,12 @@ namespace Fe
         /// <param name="command">The command.</param>
         public void Submit(Command command)
         {
+            if (_commandCount >= ushort.MaxValue)
+            {
+                //TODO: Debug logging.
+                return; // Oops can't add a command when we have more than we support.
+            }
+
             CommandState newCommand;
             newCommand.IndexBuffer = command.IndexBuffer;
             newCommand.VertexBuffer = command.VertexBuffer;
@@ -100,10 +106,15 @@ namespace Fe
             newCommand.TransformMatrixIndex = -1;
             if (command.Transform != null)
             {
+                if (_matrixCacheCount >= ushort.MaxValue)
+                {
+                    //TODO: Debug logging.
+                    return; // Oops can't add this command because we have nowhere to store it's matrix.
+                }
                 this._matrixCache[_matrixCacheCount] = command.Transform;
                 newCommand.TransformMatrixIndex = _matrixCacheCount;
                 _matrixCacheCount++;
-            }
+            }            
 
             // Add the command to the bag of commands we want for the next frame.
             this._frameCommandBag[_commandCount] = newCommand;            
