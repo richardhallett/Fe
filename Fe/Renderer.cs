@@ -23,8 +23,10 @@ namespace Fe
         /// </summary>
         public Renderer()
         {
-            _frameCommandBag = new Command[ushort.MaxValue];
-            _nextFrameCommands = new Command[ushort.MaxValue];
+            _frameCommandBag = new CommandState[ushort.MaxValue];
+            _nextFrameCommands = new CommandState[ushort.MaxValue];
+            _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
+            _matrixCacheCount = 0;
             _commandCount = 0;
 
 #if RENDERER_GL
@@ -62,7 +64,7 @@ namespace Fe
             GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);           
 #endif
             // Check we've got the right version of our rendering context set up.
-            CheckValidVersion();
+            CheckValidVersion();            
         }
 
         /// <summary>
@@ -77,12 +79,10 @@ namespace Fe
             this.Draw();
 
             // Reset command bag
-            Array.Clear(this._frameCommandBag, 0, this._commandCount);
-            Array.Clear(this._nextFrameCommands, 0, this._nextFrameCommands.Length);
             this._commandCount = 0;
 
             this.Clean();
-        }
+        }        
 
         /// <summary>
         /// Submits the specified command to the renderer queue to be used in the next frame.
@@ -91,8 +91,23 @@ namespace Fe
         /// <param name="command">The command.</param>
         public void Submit(Command command)
         {
+            CommandState newCommand;
+            newCommand.IndexBuffer = command.IndexBuffer;
+            newCommand.VertexBuffer = command.VertexBuffer;
+            newCommand.SharedUniforms = command.SharedUniforms;
+            newCommand.ShaderProgram = command.ShaderProgram;
+
+            newCommand.TransformMatrixIndex = -1;
+            if (command.Transform != null)
+            {
+                this._matrixCache[_matrixCacheCount] = command.Transform;
+                newCommand.TransformMatrixIndex = _matrixCacheCount;
+                _matrixCacheCount++;
+            }
+
             // Add the command to the bag of commands we want for the next frame.
-            this._frameCommandBag[_commandCount] = command;
+            this._frameCommandBag[_commandCount] = newCommand;            
+
             // Increase total count of commands we have for next frame.
             this._commandCount++;
         }
@@ -122,6 +137,7 @@ namespace Fe
         /// </summary>
         internal void Clean()
         {
+            _matrixCacheCount = 0;
 #if RENDERER_GL
             this._glProgramCache.Clean();
             this._glIBCache.Clean();
@@ -147,7 +163,7 @@ namespace Fe
             for (int i = 0; i < this._commandCount; i++)
             {
                 // Next command to work with.
-                Command command = this._nextFrameCommands[i];
+                CommandState command = this._nextFrameCommands[i];
 
                 // Build Shader Program as appropriate     
 #if RENDERER_GL
@@ -306,9 +322,9 @@ namespace Fe
                 }
 
                 // Per command transform
-                if (command.Transform != null && predefinedModelUniformLocation != -1)
-                {                   
-                    Nml.Matrix4x4 matrix = command.Transform;
+                if (command.TransformMatrixIndex != -1 && predefinedModelUniformLocation != -1)
+                {
+                    Nml.Matrix4x4 matrix = _matrixCache[command.TransformMatrixIndex];
 
                     unsafe
                     {
@@ -316,7 +332,7 @@ namespace Fe
                         {
                             GL.UniformMatrix4(predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }
-                    }                    
+                    }
                 }
 
                 // Lets draw!
@@ -359,18 +375,20 @@ namespace Fe
 
         private IntPtr _windowHandle; // Window handle.
 
-        private Command[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
-        private Command[] _frameCommandBag; // Commands submitted for the next frame.
+        private CommandState[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
+        private CommandState[] _frameCommandBag; // Commands submitted for the next frame.
         private int _commandCount = 0; // Number of commands added for the next frame.        
 
         private FrameState _currentState;
+
+        private Nml.Matrix4x4[] _matrixCache; // Stores matrices cached that are used in commands.
+        private int _matrixCacheCount = 0; // Current matrix index we're on for the cache.
 
 #if RENDERER_GL
         private ResourceCache<GLShaderProgram> _glProgramCache;
         private ResourceCache<GLBuffer> _glVBCache;
         private ResourceCache<GLBuffer> _glIBCache;
-        private IGraphicsContext _context;
-        //private GLContext _context;
+        private IGraphicsContext _context;        
         private int predefinedModelUniformLocation;
 
         /// <summary>

@@ -110,133 +110,93 @@ namespace StressTest1
             Fe.UniformBuffer sharedUniforms = new Fe.UniformBuffer();
 
             // Specify number of cube dimensions
-            int dim = 18;
+            int dim = 8;
             int totalCubeCount = dim * dim * dim;
             
             // Threshold for the timings
             const double highThreshold = 1000 / 65;
             const double lowThreshold = 1000 / 57;
 
-            // Set a big ol command list.
-            var cubeCommands = new List<Fe.Command>();
-            foreach (var i in Enumerable.Range(0, 64000))
-            {
-                var c = new Fe.Command();
-                c.ShaderProgram = shaderProgram;
-                c.VertexBuffer = vb;
-                c.IndexBuffer = ib;
-                c.SharedUniforms = sharedUniforms;
-                cubeCommands.Add(c);
-            }
-
             // Set up a projection matrix
             var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);            
-            projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, -5.0f, -38.0f);         
+            projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, 0.0f, -35.0f);         
             sharedUniforms.Set(projectionUniform, projectionMatrix);
 
-            float animTime = 0.0f; // Use for animating the cubes
+            float animTime = 0.0f; // Use for animating the cubes           
 
-            // Starting point
-            Nml.Vector3 initial = new Nml.Vector3(
-                -0.6f * dim / 2.0f,
-                -0.6f * dim / 2.0f,
-                -15.0f
-            );
-
-            // Handling to switch between using threads and not.
-            bool useThreading = false;
-            form.KeyDown += delegate(object sender, KeyEventArgs e)
-            {
-                if (e.KeyCode == Keys.F1)
-                {
-                    useThreading = !useThreading;
-                }
-            };
-
-            // Anonymous function for creating our commandd
-            Action<int, int, int> CreateCommand = (x, y, z) =>
-            {
-                int cubeIndex = (x * dim) + (y * dim * dim) + z;
-                
-                // Rotate it to make look pretty
-                Nml.Quaternion rotQuat;
-                Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
-                Nml.Matrix4x4 rotMatrix;
-                Nml.Quaternion.GetMatrix4x4(ref rotQuat, out rotMatrix);
-
-                // Set translation part
-                rotMatrix.M14 = initial.x + x * 0.6f;
-                rotMatrix.M24 = initial.y + y * 0.6f;
-                rotMatrix.M34 = initial.z + z * 0.6f;
-
-                var c = cubeCommands[cubeIndex];                
-
-                c.Transform = rotMatrix;
-            };
+            var cubeCommand = new Fe.Command();
+            cubeCommand.ShaderProgram = shaderProgram;
+            cubeCommand.VertexBuffer = vb;
+            cubeCommand.IndexBuffer = ib;
+            cubeCommand.SharedUniforms = sharedUniforms;
+            Nml.Matrix4x4 cubeTransform;
 
             // Create some timers and run the main loop
-            Stopwatch frameTime = Stopwatch.StartNew();
-            Stopwatch lastUpdateTimer = Stopwatch.StartNew();
+            Stopwatch frameTimer = Stopwatch.StartNew();
+            int frameCount = 0;
+            double frameTime = 0;
+            double frameTimeAccum = 0;
+            double averageFrameTime = 0;
+
             Fe.Forms.Application.Run(form, () =>
             {
-                double dt = frameTime.Elapsed.TotalMilliseconds;
-                frameTime.Restart();
-                
-                // Increase/Decrease dimensions of cubes every so often
-                if (lastUpdateTimer.Elapsed.TotalMilliseconds >= 1000)
+                frameTime = frameTimer.Elapsed.TotalMilliseconds;
+                frameTimer.Restart();
+
+                frameTimeAccum += frameTime;                
+                // Increase/Decrease dimensions of cubes based upon average frame time
+                if (frameTimeAccum >= 1000)
                 {
-                    if (dt < highThreshold)
+                    averageFrameTime = frameTimeAccum / frameCount;
+                    if (averageFrameTime < highThreshold)
                     {
                         dim = dim + 2;
                     }
-                    else if (dt > lowThreshold)
+                    else if (averageFrameTime > lowThreshold)
                     {
                         dim = Math.Max(dim - 1, 2);
                     }
 
-                    lastUpdateTimer.Restart();
+                    frameCount = 0;
+                    frameTimeAccum = 0;
 
-                    // Also we update title here to represent newest value.
-                    form.Text = String.Format("Cube count: {0}, FrameTime: {1} , FPS: {2:N0}", totalCubeCount, dt, 1000f / dt);
-                }
+                    form.Text = String.Format("Cube count: {0}, Avg Frametime: {1:N2} , Avg FPS: {2:N0}", totalCubeCount, averageFrameTime, 1000f / averageFrameTime);
+                }                
+                frameCount++;
+
+                // Starting point
+                Nml.Vector3 initial = new Nml.Vector3(
+                    -0.6f * dim / 2.0f,
+                    -0.6f * dim / 2.0f,
+                    -15.0f
+                );
 
                 totalCubeCount = dim * dim * dim;
 
                 // Increase the animation
-                animTime += (float)dt * 0.0010f;
+                animTime += (float)frameTime * 0.0010f;
 
-                if (useThreading)
+                for (int x = 0; x < dim; x++)
                 {
-                    // An example of a simple use of threading for the calculation of the cube commands.
-                    Parallel.For(0, dim, x =>
+                    for (int y = 0; y < dim; y++)
                     {
-                        for (int y = 0; y < dim; y++)
+                        for (int z = 0; z < dim; z++)
                         {
-                            for (int z = 0; z < dim; z++)
-                            {
-                                CreateCommand(x, y, z);
-                            }
-                        }
-                    });
-                }
-                else
-                {
-                    for (int x = 0; x < dim; x++)
-                    {
-                        for (int y = 0; y < dim; y++)
-                        {
-                            for (int z = 0; z < dim; z++)
-                            {
-                                CreateCommand(x, y, z);
-                            }
+                            // Rotate it to make look pretty    
+                            Nml.Quaternion rotQuat;
+                            Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
+                            Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
+
+                            // Set translation part
+                            cubeTransform.M14 = initial.x + x * 0.6f;
+                            cubeTransform.M24 = initial.y + y * 0.6f;
+                            cubeTransform.M34 = initial.z + z * 0.6f;
+
+                            cubeCommand.Transform = cubeTransform;
+
+                            renderer.Submit(cubeCommand);                                                    
                         }
                     }
-                }
-
-                // Submit our commands for the cubes to the renderer
-                for (int i = 0; i < totalCubeCount; i++)
-                {                    
-                    renderer.Submit(cubeCommands[i]);  
                 }
 
                 renderer.Update();      
