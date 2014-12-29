@@ -61,7 +61,12 @@ namespace Fe
             
             GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
-            GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);           
+            GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
+
+            // Create a dummy VAO as it's required for Core profile
+            var vaos = new int[1];
+            GL.GenVertexArrays(1, vaos);
+            GL.BindVertexArray(vaos[0]);
 #endif
             // Check we've got the right version of our rendering context set up.
             CheckValidVersion();            
