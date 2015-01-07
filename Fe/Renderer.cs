@@ -116,7 +116,7 @@ namespace Fe
                     //TODO: Debug logging.
                     return; // Oops can't add this command because we have nowhere to store it's matrix.
                 }
-                this._matrixCache[_matrixCacheCount] = command.Transform;
+                this._matrixCache[_matrixCacheCount] = command.Transform.Value;
                 newCommand.TransformMatrixIndex = _matrixCacheCount;
                 _matrixCacheCount++;
             }            

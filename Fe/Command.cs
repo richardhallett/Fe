@@ -12,14 +12,6 @@ namespace Fe
     public class Command
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Command"/> class.
-        /// </summary>
-        public Command()
-        {
-            Transform = Nml.Matrix4x4.Identity;
-        }
-
-        /// <summary>
         /// The shader program to use for this command.
         /// </summary>
         /// <value>
@@ -49,7 +41,7 @@ namespace Fe
         /// <value>
         /// A transform.
         /// </value>
-        public Nml.Matrix4x4 Transform;
+        public Nml.Matrix4x4? Transform;
 
         /// <summary>
         /// A uniform buffer is shared across all commands that use it and passed through to the shader pipeline.
