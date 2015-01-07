@@ -12,6 +12,14 @@ namespace Fe
     public class Command
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="Command"/> class.
+        /// </summary>
+        public Command()
+        {
+            Transform = Nml.Matrix4x4.Identity;
+        }
+
+        /// <summary>
         /// The shader program to use for this command.
         /// </summary>
         /// <value>
