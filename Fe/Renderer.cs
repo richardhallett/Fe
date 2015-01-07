@@ -102,7 +102,7 @@ namespace Fe
                 return; // Oops can't add a command when we have more than we support.
             }
 
-            CommandState newCommand;
+            CommandState newCommand = new CommandState();
             newCommand.IndexBuffer = command.IndexBuffer;
             newCommand.VertexBuffer = command.VertexBuffer;
             newCommand.SharedUniforms = command.SharedUniforms;
