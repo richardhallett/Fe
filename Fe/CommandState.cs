@@ -20,5 +20,9 @@ namespace Fe
         public int TransformMatrixIndex;
 
         public UniformBuffer SharedUniforms;
+
+        public byte viewId;
+
+        public ulong sortKey;
     }
 }

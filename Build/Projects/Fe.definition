@@ -24,6 +24,7 @@
   </References>
   <Files>
     <Compile Include="Command.cs" />
+    <Compile Include="CommandState.cs" />
     <Compile Include="FrameState.cs" />
     <Compile Include="GLBuffer.cs" />
     <Compile Include="GLShaderProgram.cs" />

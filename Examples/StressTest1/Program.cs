@@ -51,6 +51,10 @@ namespace StressTest1
             // Initialise defaults
             renderer.Init();
 
+            // Create a view
+            var view = new Fe.View(0, 0, form.Width, form.Height);
+            view.ClearColour = new Fe.Colour4(0xFF00FFFF);
+            
             // Create the shaders
             Fe.Shader vertexShader, fragmentShader;
             switch(renderer.GetRendererType()) 
@@ -116,12 +120,7 @@ namespace StressTest1
             // Threshold for the timings
             const double highThreshold = 1000 / 65;
             const double lowThreshold = 1000 / 57;
-
-            // Set up a projection matrix
-            var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);            
-            projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, 0.0f, -35.0f);         
-            sharedUniforms.Set(projectionUniform, projectionMatrix);
-
+            
             float animTime = 0.0f; // Use for animating the cubes           
 
             var cubeCommand = new Fe.Command();
@@ -136,7 +135,17 @@ namespace StressTest1
             int frameCount = 0;
             double frameTime = 0;
             double frameTimeAccum = 0;
-            double averageFrameTime = 0;
+            double averageFrameTime = 0;         
+
+            form.Resize += (object o, EventArgs e) =>
+            {
+                // Set up a projection matrix
+                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
+                projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, 0.0f, -35.0f);
+                sharedUniforms.Set(projectionUniform, projectionMatrix);
+
+                renderer.Reset(form.Width, form.Height);
+            };
 
             Fe.Forms.Application.Run(form, () =>
             {
@@ -194,7 +203,7 @@ namespace StressTest1
 
                             cubeCommand.Transform = cubeTransform;
 
-                            renderer.Submit(cubeCommand);                                                    
+                            renderer.Submit(cubeCommand);
                         }
                     }
                 }

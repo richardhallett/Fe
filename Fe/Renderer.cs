@@ -25,9 +25,11 @@ namespace Fe
         {
             _frameCommandBag = new CommandState[ushort.MaxValue];
             _nextFrameCommands = new CommandState[ushort.MaxValue];
+            _sortKeys = Enumerable.Repeat<ulong>(ulong.MaxValue, ushort.MaxValue).ToArray();
             _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
             _matrixCacheCount = 0;
             _commandCount = 0;
+            _views = new Dictionary<byte, View>();
 
 #if RENDERER_GL
             _glProgramCache = new ResourceCache<GLShaderProgram>(512);
@@ -36,6 +38,16 @@ namespace Fe
 #endif
             _currentState = new FrameState();
         }
+
+        /// <summary>
+        /// Width of the renderers surface.
+        /// </summary>
+        public int Width { get; private set; }
+
+        /// <summary>
+        /// Height of the renderers surface.
+        /// </summary>
+        public int Height { get; private set; }
 
         /// <summary>
         /// Initialises the renderer.
@@ -77,8 +89,29 @@ namespace Fe
         /// </summary>
         public void Update()
         {
-            // Build the next frame            
+            // Build the next frame                    
+            //Array.Sort(this._frameCommandBag, (u1, u2) =>
+            //{
+            //    if (u1.sortKey == 0 && u2.sortKey == 0) return 0;
+            //    else if (u1.sortKey == 0) return ulong.MaxValue.CompareTo(u2.sortKey);
+            //    else if (u2.sortKey == 0) return u1.sortKey.CompareTo(ulong.MaxValue);
+            //    else return u1.sortKey.CompareTo(u2.sortKey);
+            //});
+            
+
+            //Array.Sort(this._sortKeys, this._frameCommandBag, (u1, u2) =>
+            //{
+            //    if (u1 == 0 && u2 == 0) return 0;
+            //    else if (u1 == 0) return ulong.MaxValue.CompareTo(u2);
+            //    else if (u2 == 0) return u1.CompareTo(ulong.MaxValue);
+            //    else return u1.CompareTo(u2);
+            //});
+
             Array.Copy(this._frameCommandBag, this._nextFrameCommands, this._commandCount);
+
+            // This is soooo slooowwww:(
+            Array.Sort<ulong, CommandState>(this._sortKeys, this._nextFrameCommands, 0, this._commandCount);
+            //this._nextFrameCommands = this._nextFrameCommands.OrderByDescending(command => command.sortKey).ToArray();
             
             // Draw the next frame.
             this.Draw();
@@ -94,7 +127,8 @@ namespace Fe
         /// This is not a thread safe method, it must be called in the same context as the Renderer was created.
         /// </summary>
         /// <param name="command">The command.</param>
-        public void Submit(Command command)
+        /// <param name="viewId">The id of the view which the renderer will execute this command</param>
+        public void Submit(Command command, byte viewId = 0)
         {
             if (_commandCount >= ushort.MaxValue)
             {
@@ -108,7 +142,21 @@ namespace Fe
             newCommand.SharedUniforms = command.SharedUniforms;
             newCommand.ShaderProgram = command.ShaderProgram;
 
+            // Have we already loaded and cached a shader program.
+            if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
+            {
+#if RENDERER_GL
+                // Build a OpenGL shader program from our commands ShaderProgram data.
+                GLShaderProgram program = new GLShaderProgram(command.ShaderProgram);
+                this._glProgramCache.Add(command.ShaderProgram, program);
+#endif
+            }
+
+            newCommand.viewId = viewId;
+            newCommand.sortKey = ulong.MaxValue;
+
             newCommand.TransformMatrixIndex = -1;
+ 
             if (command.Transform != null)
             {
                 if (_matrixCacheCount >= ushort.MaxValue)
@@ -119,13 +167,35 @@ namespace Fe
                 this._matrixCache[_matrixCacheCount] = command.Transform.Value;
                 newCommand.TransformMatrixIndex = _matrixCacheCount;
                 _matrixCacheCount++;
-            }            
+            }
+
+            // Work out the sort key
+            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40;
+            ulong depth = 0;
+            ulong programkey = (ulong)newCommand.ShaderProgram.ResourceIndex << 0x20;
+            ulong trans = 0 << 0x29;
+            ulong seq = 0 << 0x2c;
+            ulong view = (ulong)newCommand.viewId << 0x37;
+            ulong sortKey = depth | programkey | trans | (ulong)1<<0x2b | seq | view;
+
+            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
+            this._sortKeys[_commandCount] = sortKey;
 
             // Add the command to the bag of commands we want for the next frame.
             this._frameCommandBag[_commandCount] = newCommand;            
 
             // Increase total count of commands we have for next frame.
             this._commandCount++;
+        }
+
+        /// <summary>
+        /// Stores a view against a given identifier.
+        /// </summary>
+        /// <param name="viewId">The view identifier.</param>
+        /// <param name="view">The view.</param>
+        public void SetView(byte viewId, View view)
+        {
+            this._views[viewId] = view;
         }
 
         /// <summary>
@@ -149,6 +219,25 @@ namespace Fe
         }
 
         /// <summary>
+        /// Reset the renderer.
+        /// </summary>
+        /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
+        public void Reset(int width, int height)
+        {
+            // Invalidate the current state
+            this._currentState = new FrameState();
+
+            // Store size details
+            this.Width = width;
+            this.Height = height;
+
+            // Reset the default view
+            this._defaultView = new View(0, 0, width, height);
+            this._defaultView.ClearColour = new Colour4(0x719AB7FF);
+        }
+
+        /// <summary>
         /// Attempts to clean any resources that need to be.
         /// </summary>
         internal void Clean()
@@ -167,19 +256,41 @@ namespace Fe
         internal void Draw()
         {
 #if RENDERER_GL
-            GL.ClearColor(0, 0, 0, 1);
             GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
-#endif       
-
-            // Set the view
-#if RENDERER_GL
-            GL.Viewport(0, 0, 1280, 720);
 #endif
             // Go through each of our commands that are for this frame.
             for (int i = 0; i < this._commandCount; i++)
             {
                 // Next command to work with.
                 CommandState command = this._nextFrameCommands[i];
+
+                if (_currentState.ViewId != command.viewId)
+                {
+                    _currentState.ViewId = command.viewId;
+                    View view;
+                    if (!_views.TryGetValue(command.viewId, out view))
+                    {
+                        view = _defaultView;
+                    }
+
+                    if (view != null)
+                    {
+#if RENDERER_GL
+                        GL.Viewport(view.X, view.Y, view.Width, view.Height);
+
+                        // If we've defined a rectangle to scissor with for this view then lets do it.
+                        if (view.ScissorRect != null)
+                        {
+                            GL.Enable(EnableCap.ScissorTest);
+                            GL.Scissor(view.ScissorRect.Value.X, view.ScissorRect.Value.Y, view.ScissorRect.Value.Width, view.ScissorRect.Value.Height);
+                        }
+
+                        GL.ClearColor(view.ClearColour.Red, view.ClearColour.Green, view.ClearColour.Blue, view.ClearColour.Alpha);
+                        GL.ClearDepth(view.ClearDepth);
+                        GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
+#endif
+                    }
+                }
 
                 // Build Shader Program as appropriate     
 #if RENDERER_GL
@@ -338,13 +449,17 @@ namespace Fe
                 }
 
                 // Per command transform
-                if (command.TransformMatrixIndex != -1 && predefinedModelUniformLocation != -1)
+                Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
+                if (predefinedModelUniformLocation != -1)
                 {
-                    Nml.Matrix4x4 matrix = _matrixCache[command.TransformMatrixIndex];
+                    if (command.TransformMatrixIndex != -1)
+                    {
+                        transformMatrix = _matrixCache[command.TransformMatrixIndex];
+                    }
 
                     unsafe
                     {
-                        float* matrix_ptr = &matrix.M11;
+                        float* matrix_ptr = &transformMatrix.M11;
                         {
                             GL.UniformMatrix4(predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }
@@ -391,6 +506,7 @@ namespace Fe
 
         private IntPtr _windowHandle; // Window handle.
 
+        private ulong[] _sortKeys;
         private CommandState[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
         private CommandState[] _frameCommandBag; // Commands submitted for the next frame.
         private int _commandCount = 0; // Number of commands added for the next frame.        
@@ -399,6 +515,9 @@ namespace Fe
 
         private Nml.Matrix4x4[] _matrixCache; // Stores matrices cached that are used in commands.
         private int _matrixCacheCount = 0; // Current matrix index we're on for the cache.
+
+        private View _defaultView; // Default view when none have been sent
+        private Dictionary<byte, View> _views; // Stored views
 
 #if RENDERER_GL
         private ResourceCache<GLShaderProgram> _glProgramCache;

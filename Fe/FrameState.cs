@@ -14,5 +14,7 @@ namespace Fe
         public ShaderProgram ShaderProgram { get; set; }
 
         public UniformBuffer SharedUniforms { get; set; }
+
+        public byte? ViewId { get; set; }
     }
 }
