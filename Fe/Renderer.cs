@@ -69,8 +69,6 @@ namespace Fe
                 //TODO: Logging to say that GL context wasn't created and assumed it's been setup by someone else.
             }
 
-            string version = GL.GetString(StringName.Version);            
-            
             GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
             GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
@@ -84,38 +82,94 @@ namespace Fe
             CheckValidVersion();            
         }
 
+        public static void RadixSort64<T>(ulong[] keys, T[] values, int length)
+        {
+            // Base 10 Radix Sort
+            const int radix = 10;
+
+            // Find the largest number in all the keys
+            var maxValue = keys.Max();
+
+            // Buckets to hold the indexes back to the keys array
+            List<int>[] buckets = new List<int>[10];
+            for (int i = 0; i < radix; i++)
+            {
+                buckets[i] = new List<int>();
+            }
+
+            ulong[] tmpKeys = new ulong[length];
+            T[] tmpValues = new T[length];
+
+            int exp = 1;
+            double place = 1;
+            // Repeat until we hit max places of the max value.
+            while (place <= maxValue)
+            {
+                // For every key, put the index next to it's LSD
+                var prevKey = keys[0];
+                bool sorted = true;
+                for (int i = 0; i < length; i++)
+                {
+                    var key = keys[i];
+                    sorted &= (prevKey <= key);
+                    int digit = (int)(keys[i] / place % radix);
+                    buckets[digit].Add(i);
+
+                    prevKey = key;
+                }
+
+                if (sorted)
+                {
+                    break;
+                }
+
+                // For each bucket take the keys and fill keys/values
+                int keyIndex = 0;
+                for (int i = 0; i < buckets.Length; i++)
+                {
+                    var bucket = buckets[i];
+                    for (int j = 0; j < bucket.Count; j++)
+                    {
+                        int bucketKey = bucket[j];
+                        tmpKeys[keyIndex] = keys[bucketKey];
+                        tmpValues[keyIndex] = values[bucketKey];
+                        keyIndex++;
+                    }
+                }
+
+                tmpKeys.CopyTo(keys, 0);
+                tmpValues.CopyTo(values, 0);
+
+                // Empty buckets
+                for (int k = 0; k < buckets.Length; k++)
+                {
+                    buckets[k].Clear();
+                }
+
+                // Calculate the places
+                place = Math.Pow(radix, exp);
+                exp += 1;
+            }
+        }
+
+
         /// <summary>
         /// Updates the renderer and advances the next frame to be rendererd.
         /// </summary>
         public void Update()
-        {
-            // Build the next frame                    
-            //Array.Sort(this._frameCommandBag, (u1, u2) =>
-            //{
-            //    if (u1.sortKey == 0 && u2.sortKey == 0) return 0;
-            //    else if (u1.sortKey == 0) return ulong.MaxValue.CompareTo(u2.sortKey);
-            //    else if (u2.sortKey == 0) return u1.sortKey.CompareTo(ulong.MaxValue);
-            //    else return u1.sortKey.CompareTo(u2.sortKey);
-            //});
-            
-
-            //Array.Sort(this._sortKeys, this._frameCommandBag, (u1, u2) =>
-            //{
-            //    if (u1 == 0 && u2 == 0) return 0;
-            //    else if (u1 == 0) return ulong.MaxValue.CompareTo(u2);
-            //    else if (u2 == 0) return u1.CompareTo(ulong.MaxValue);
-            //    else return u1.CompareTo(u2);
-            //});
-
+        {            
+                                    
             Array.Copy(this._frameCommandBag, this._nextFrameCommands, this._commandCount);
 
-            // This is soooo slooowwww:(
-            Array.Sort<ulong, CommandState>(this._sortKeys, this._nextFrameCommands, 0, this._commandCount);
-            //this._nextFrameCommands = this._nextFrameCommands.OrderByDescending(command => command.sortKey).ToArray();
+            //RadixSort64<CommandState>(this._sortKeys, this._tmpSortKeys, this._frameCommandBag, this._nextFrameCommands, this._commandCount);            
+            
+            RadixSort64<CommandState>(this._sortKeys, this._nextFrameCommands, this._commandCount);
+
+            //Array.Sort<ulong, CommandState>(this._sortKeys, this._nextFrameCommands, 0, this._commandCount);
             
             // Draw the next frame.
-            this.Draw();
-
+            this.Draw();   
+            
             // Reset command bag
             this._commandCount = 0;
 
@@ -153,7 +207,7 @@ namespace Fe
             }
 
             newCommand.viewId = viewId;
-            newCommand.sortKey = ulong.MaxValue;
+            //newCommand.sortKey = ulong.MaxValue;
 
             newCommand.TransformMatrixIndex = -1;
  
@@ -171,14 +225,15 @@ namespace Fe
 
             // Work out the sort key
             //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40;
+            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
+
             ulong depth = 0;
             ulong programkey = (ulong)newCommand.ShaderProgram.ResourceIndex << 0x20;
             ulong trans = 0 << 0x29;
             ulong seq = 0 << 0x2c;
             ulong view = (ulong)newCommand.viewId << 0x37;
             ulong sortKey = depth | programkey | trans | (ulong)1<<0x2b | seq | view;
-
-            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
+            
             this._sortKeys[_commandCount] = sortKey;
 
             // Add the command to the bag of commands we want for the next frame.
@@ -310,7 +365,7 @@ namespace Fe
 #if RENDERER_GL
                     program = _glProgramCache[command.ShaderProgram.ResourceIndex];
 #endif
-                }                
+                }
 
                 // Build Vertex Buffer as appropriate
 #if RENDERER_GL
@@ -328,7 +383,7 @@ namespace Fe
                 else
                 {
 #if RENDERER_GL
-                     vb = _glVBCache[command.VertexBuffer.ResourceIndex];
+                    vb = _glVBCache[command.VertexBuffer.ResourceIndex];
 #endif
                 }
 
@@ -358,7 +413,7 @@ namespace Fe
                 {
                     this._currentState.SharedUniforms = command.SharedUniforms;
                     uniformsChanged = true;
-                }                
+                }
 
                 // Do we need to change the state for the current active program.
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
@@ -396,7 +451,7 @@ namespace Fe
                     }
 
                     // Program changed, so we'll need to change the uniforms.
-                    uniformsChanged = true;                    
+                    uniformsChanged = true;
 #endif
                 }
 
@@ -405,7 +460,7 @@ namespace Fe
                 {
                     int uniformLocation;
                     foreach (var uniform in command.SharedUniforms._uniforms)
-                    {                        
+                    {
                         if (program.Uniforms.TryGetValue(uniform.Key.Name, out uniformLocation))
                         {
                             if (uniform.Key.Type == UniformType.Matrix4x4f)
@@ -438,7 +493,7 @@ namespace Fe
                                 float[] value = uniform.Value as float[];
                                 GL.Uniform4(uniformLocation, value[0], value[1], value[2], value[3]);
                             }
-                        }                        
+                        }
                     }
 
                     // Predefined locations
@@ -471,7 +526,7 @@ namespace Fe
 
             }  // End of command list
 
-#if RENDERER_GL            
+#if RENDERER_GL    
             _context.SwapBuffers();
 #endif
         }
