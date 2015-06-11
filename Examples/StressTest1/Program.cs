@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -51,9 +52,8 @@ namespace StressTest1
             // Initialise defaults
             renderer.Init();
 
-            // Create a view
-            var view = new Fe.View(0, 0, form.Width, form.Height);
-            view.ClearColour = new Fe.Colour4(0xFF00FFFF);
+            // Create geometry layer command bucker
+            var geometryBucket = renderer.AddCommandBucket(UInt16.MaxValue);
             
             // Create the shaders
             Fe.Shader vertexShader, fragmentShader;
@@ -123,13 +123,6 @@ namespace StressTest1
             
             float animTime = 0.0f; // Use for animating the cubes           
 
-            var cubeCommand = new Fe.Command();
-            cubeCommand.ShaderProgram = shaderProgram;
-            cubeCommand.VertexBuffer = vb;
-            cubeCommand.IndexBuffer = ib;
-            cubeCommand.SharedUniforms = sharedUniforms;
-            Nml.Matrix4x4 cubeTransform;
-
             // Create some timers and run the main loop
             Stopwatch frameTimer = Stopwatch.StartNew();
             int frameCount = 0;
@@ -141,7 +134,7 @@ namespace StressTest1
             {
                 // Set up a projection matrix
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
-                projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, 0.0f, -35.0f);
+                projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, -5.0f, -50.0f);
                 sharedUniforms.Set(projectionUniform, projectionMatrix);
 
                 renderer.Reset(form.Width, form.Height);
@@ -184,29 +177,38 @@ namespace StressTest1
 
                 // Increase the animation
                 animTime += (float)frameTime * 0.0010f;
-
+        
                 for (int x = 0; x < dim; x++)
-                {
+             //   Parallel.For(0, dim, x =>
+                {               
                     for (int y = 0; y < dim; y++)
                     {
-                        for (int z = 0; z < dim; z++)
+                       for (int z = 0; z < dim; z++)
                         {
+                            var cubeCommand = geometryBucket.AddCommand(1);
+
+                            cubeCommand.SetShaderProgram(shaderProgram);
+                            cubeCommand.SetVertexBuffer(vb);
+                            cubeCommand.SetIndexBuffer(ib);
+                            cubeCommand.SetUniformBuffer(sharedUniforms);
+
+                            Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
+
                             // Rotate it to make look pretty    
                             Nml.Quaternion rotQuat;
                             Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
                             Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
 
                             // Set translation part
-                            cubeTransform.M14 = initial.x + x * 0.6f;
-                            cubeTransform.M24 = initial.y + y * 0.6f;
-                            cubeTransform.M34 = initial.z + z * 0.6f;
+                            cubeTransform.M14 = initial.x + x * 0.8f;
+                            cubeTransform.M24 = initial.y + y * 0.8f;
+                            cubeTransform.M34 = initial.z + z * 0.8f;
 
-                            cubeCommand.Transform = cubeTransform;
-
-                            renderer.Submit(cubeCommand);
+                            cubeCommand.SetTransform(cubeTransform);
                         }
                     }
                 }
+        //        );
 
                 renderer.Update();      
             });

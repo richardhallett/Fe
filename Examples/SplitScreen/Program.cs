@@ -109,17 +109,10 @@ namespace StressTest1
 
             Fe.UniformBuffer sharedUniforms = new Fe.UniformBuffer();
 
-            var cubeCommand = new Fe.Command();
-            cubeCommand.ShaderProgram = shaderProgram;
-            cubeCommand.VertexBuffer = vb;
-            cubeCommand.IndexBuffer = ib;
-            cubeCommand.SharedUniforms = sharedUniforms;
-            cubeCommand.Transform = Nml.Matrix4x4.Identity;
-
             form.Resize += (object o, EventArgs e) =>
             {
                 var view1 = new Fe.View(0, form.Height / 2, form.Width, form.Height / 2, true);
-                view1.ClearColour = new Fe.Colour4(1.0f, 0.0f, 1.0f);
+                view1.ClearColour = new Fe.Colour4(1.0f, 1.0f, 1.0f);
                 var view2 = new Fe.View(0, 0, form.Width, form.Height / 2, true); 
 
                 renderer.SetView(0, view1);
@@ -133,6 +126,9 @@ namespace StressTest1
                 renderer.Reset(form.Width, form.Height);
             };
 
+            var view1Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 0);
+            var view2Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 1);
+            
             // Create some timers and run the main loop
             Stopwatch frameTimer = Stopwatch.StartNew();
             double frameTime = 0;
@@ -144,12 +140,26 @@ namespace StressTest1
 
                 for (int i = 0; i < 5; i++ )
                 {
+                    var cubeCommand = view1Bucket.AddCommand(1);
+                    cubeCommand.ShaderProgram = shaderProgram;
+                    cubeCommand.VertexBuffer = vb;
+                    cubeCommand.IndexBuffer = ib;
+                    cubeCommand.SharedUniforms = sharedUniforms;
+                    cubeCommand.Transform = Nml.Matrix4x4.Identity;
+
                     // Spin one way
                     cubeCommand.Transform = Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f);
-                    renderer.Submit(cubeCommand, 0);
+
+                    var cubeCommand2 = view2Bucket.AddCommand(1);
+                    cubeCommand2.ShaderProgram = shaderProgram;
+                    cubeCommand2.VertexBuffer = vb;
+                    cubeCommand2.IndexBuffer = ib;
+                    cubeCommand2.SharedUniforms = sharedUniforms;
+                    cubeCommand2.Transform = Nml.Matrix4x4.Identity;
+
                     // Spin the other way
-                    cubeCommand.Transform = Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f);
-                    renderer.Submit(cubeCommand, 1);
+                    cubeCommand2.Transform = Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f);
+                     
                 }                
                 
                 renderer.Update();

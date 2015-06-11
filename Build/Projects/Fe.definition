@@ -23,7 +23,10 @@
     <Reference Include="Fe.Depends" />
   </References>
   <Files>
+    <Compile Include="Colour4.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="CommandBucket.cs" />
+    <Compile Include="CommandOld.cs" />
     <Compile Include="CommandState.cs" />
     <Compile Include="FrameState.cs" />
     <Compile Include="GLBuffer.cs" />
@@ -35,6 +38,7 @@
     <Compile Include="Renderer.cs" />
     <Compile Include="RendererType.cs" />
     <Compile Include="ResourceCache.cs" />
+    <Compile Include="ScissorRect.cs" />
     <Compile Include="Shader.cs" />
     <Compile Include="ShaderProgram.cs" />
     <Compile Include="ShaderType.cs" />
@@ -46,5 +50,6 @@
     <Compile Include="VertexBuffer.cs" />
     <Compile Include="VertexBufferBase.cs" />
     <Compile Include="VertexDeclaration.cs" />
+    <Compile Include="View.cs" />
   </Files>
 </Project>

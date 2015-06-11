@@ -12,7 +12,7 @@ using OpenTK.Graphics.OpenGL;
 #endif
 
 namespace Fe
-{
+{ 
     /// <summary>
     /// The Fe renderer handles all the drawing and processing of the render commands.
     /// </summary>
@@ -23,8 +23,16 @@ namespace Fe
         /// </summary>
         public Renderer()
         {
-            _frameCommandBag = new CommandState[ushort.MaxValue];
-            _nextFrameCommands = new CommandState[ushort.MaxValue];
+            _commandBuckets = new List<ICommandBucket>();
+
+            _frameCommandBag = new Command[ushort.MaxValue];
+            _nextFrameCommands = new Command[ushort.MaxValue];
+
+            for (uint i = 0; i < ushort.MaxValue; i++)
+            {
+                this._nextFrameCommands[i] = new Command();
+            }
+
             _sortKeys = Enumerable.Repeat<ulong>(ulong.MaxValue, ushort.MaxValue).ToArray();
             _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
             _matrixCacheCount = 0;
@@ -80,93 +88,19 @@ namespace Fe
 #endif
             // Check we've got the right version of our rendering context set up.
             CheckValidVersion();            
-        }
-
-        public static void RadixSort64<T>(ulong[] keys, T[] values, int length)
-        {
-            // Base 10 Radix Sort
-            const int radix = 10;
-
-            // Find the largest number in all the keys
-            var maxValue = keys.Max();
-
-            // Buckets to hold the indexes back to the keys array
-            List<int>[] buckets = new List<int>[10];
-            for (int i = 0; i < radix; i++)
-            {
-                buckets[i] = new List<int>();
-            }
-
-            ulong[] tmpKeys = new ulong[length];
-            T[] tmpValues = new T[length];
-
-            int exp = 1;
-            double place = 1;
-            // Repeat until we hit max places of the max value.
-            while (place <= maxValue)
-            {
-                // For every key, put the index next to it's LSD
-                var prevKey = keys[0];
-                bool sorted = true;
-                for (int i = 0; i < length; i++)
-                {
-                    var key = keys[i];
-                    sorted &= (prevKey <= key);
-                    int digit = (int)(keys[i] / place % radix);
-                    buckets[digit].Add(i);
-
-                    prevKey = key;
-                }
-
-                if (sorted)
-                {
-                    break;
-                }
-
-                // For each bucket take the keys and fill keys/values
-                int keyIndex = 0;
-                for (int i = 0; i < buckets.Length; i++)
-                {
-                    var bucket = buckets[i];
-                    for (int j = 0; j < bucket.Count; j++)
-                    {
-                        int bucketKey = bucket[j];
-                        tmpKeys[keyIndex] = keys[bucketKey];
-                        tmpValues[keyIndex] = values[bucketKey];
-                        keyIndex++;
-                    }
-                }
-
-                tmpKeys.CopyTo(keys, 0);
-                tmpValues.CopyTo(values, 0);
-
-                // Empty buckets
-                for (int k = 0; k < buckets.Length; k++)
-                {
-                    buckets[k].Clear();
-                }
-
-                // Calculate the places
-                place = Math.Pow(radix, exp);
-                exp += 1;
-            }
-        }
-
+        }      
 
         /// <summary>
         /// Updates the renderer and advances the next frame to be rendererd.
         /// </summary>
         public void Update()
-        {            
-                                    
-            Array.Copy(this._frameCommandBag, this._nextFrameCommands, this._commandCount);
+        {                        
+            foreach (var bucket in _commandBuckets)
+            {
+                bucket.Sort();
+                this._commandCount += bucket.Submit(ref this._nextFrameCommands, this._commandCount);
+            }
 
-            //RadixSort64<CommandState>(this._sortKeys, this._tmpSortKeys, this._frameCommandBag, this._nextFrameCommands, this._commandCount);            
-            
-            RadixSort64<CommandState>(this._sortKeys, this._nextFrameCommands, this._commandCount);
-
-            //Array.Sort<ulong, CommandState>(this._sortKeys, this._nextFrameCommands, 0, this._commandCount);
-            
             // Draw the next frame.
             this.Draw();   
             
@@ -174,7 +108,15 @@ namespace Fe
             this._commandCount = 0;
 
             this.Clean();
-        }        
+        }
+
+        public CommandBucket AddCommandBucket(uint size, byte viewId = 0)
+        {
+            var bucket = new CommandBucket(size, viewId);
+            _commandBuckets.Add(bucket);
+
+            return bucket;
+        }
 
         /// <summary>
         /// Submits the specified command to the renderer queue to be used in the next frame.
@@ -182,66 +124,66 @@ namespace Fe
         /// </summary>
         /// <param name="command">The command.</param>
         /// <param name="viewId">The id of the view which the renderer will execute this command</param>
-        public void Submit(Command command, byte viewId = 0)
-        {
-            if (_commandCount >= ushort.MaxValue)
-            {
-                //TODO: Debug logging.
-                return; // Oops can't add a command when we have more than we support.
-            }
+//        public void Submit(CommandOld command, byte viewId = 0)
+//        {
+//            if (_commandCount >= ushort.MaxValue)
+//            {
+//                //TODO: Debug logging.
+//                return; // Oops can't add a command when we have more than we support.
+//            }
 
-            CommandState newCommand = new CommandState();
-            newCommand.IndexBuffer = command.IndexBuffer;
-            newCommand.VertexBuffer = command.VertexBuffer;
-            newCommand.SharedUniforms = command.SharedUniforms;
-            newCommand.ShaderProgram = command.ShaderProgram;
+//            Command newCommand = new Command();
+//            newCommand.IndexBuffer = command.IndexBuffer;
+//            newCommand.VertexBuffer = command.VertexBuffer;
+//            newCommand.SharedUniforms = command.SharedUniforms;
+//            newCommand.ShaderProgram = command.ShaderProgram;
 
-            // Have we already loaded and cached a shader program.
-            if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
-            {
-#if RENDERER_GL
-                // Build a OpenGL shader program from our commands ShaderProgram data.
-                GLShaderProgram program = new GLShaderProgram(command.ShaderProgram);
-                this._glProgramCache.Add(command.ShaderProgram, program);
-#endif
-            }
+//            // Have we already loaded and cached a shader program.
+//            if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
+//            {
+//#if RENDERER_GL
+//                // Build a OpenGL shader program from our commands ShaderProgram data.
+//                GLShaderProgram program = new GLShaderProgram(command.ShaderProgram);
+//                this._glProgramCache.Add(command.ShaderProgram, program);
+//#endif
+//            }
 
-            newCommand.viewId = viewId;
-            //newCommand.sortKey = ulong.MaxValue;
+//            newCommand.viewId = viewId;
+//            //newCommand.sortKey = ulong.MaxValue;
 
-            newCommand.TransformMatrixIndex = -1;
+//            newCommand.TransformMatrixIndex = -1;
  
-            if (command.Transform != null)
-            {
-                if (_matrixCacheCount >= ushort.MaxValue)
-                {
-                    //TODO: Debug logging.
-                    return; // Oops can't add this command because we have nowhere to store it's matrix.
-                }
-                this._matrixCache[_matrixCacheCount] = command.Transform.Value;
-                newCommand.TransformMatrixIndex = _matrixCacheCount;
-                _matrixCacheCount++;
-            }
+//            if (command.Transform != null)
+//            {
+//                if (_matrixCacheCount >= ushort.MaxValue)
+//                {
+//                    //TODO: Debug logging.
+//                    return; // Oops can't add this command because we have nowhere to store it's matrix.
+//                }
+//                this._matrixCache[_matrixCacheCount] = command.Transform.Value;
+//                newCommand.TransformMatrixIndex = _matrixCacheCount;
+//                _matrixCacheCount++;
+//            }
 
-            // Work out the sort key
-            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40;
-            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
+//            // Work out the sort key
+//            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40;
+//            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
 
-            ulong depth = 0;
-            ulong programkey = (ulong)newCommand.ShaderProgram.ResourceIndex << 0x20;
-            ulong trans = 0 << 0x29;
-            ulong seq = 0 << 0x2c;
-            ulong view = (ulong)newCommand.viewId << 0x37;
-            ulong sortKey = depth | programkey | trans | (ulong)1<<0x2b | seq | view;
+//            ulong depth = 0;
+//            ulong programkey = (ulong)newCommand.ShaderProgram.ResourceIndex << 0x20;
+//            ulong trans = 0 << 0x29;
+//            ulong seq = 0 << 0x2c;
+//            ulong view = (ulong)newCommand.viewId << 0x37;
+//            ulong sortKey = depth | programkey | trans | (ulong)1<<0x2b | seq | view;
             
-            this._sortKeys[_commandCount] = sortKey;
+//            this._sortKeys[_commandCount] = sortKey;
 
-            // Add the command to the bag of commands we want for the next frame.
-            this._frameCommandBag[_commandCount] = newCommand;            
+//            // Add the command to the bag of commands we want for the next frame.
+//            this._frameCommandBag[_commandCount] = newCommand;            
 
-            // Increase total count of commands we have for next frame.
-            this._commandCount++;
-        }
+//            // Increase total count of commands we have for next frame.
+//            this._commandCount++;
+//        }
 
         /// <summary>
         /// Stores a view against a given identifier.
@@ -317,7 +259,7 @@ namespace Fe
             for (int i = 0; i < this._commandCount; i++)
             {
                 // Next command to work with.
-                CommandState command = this._nextFrameCommands[i];
+                Command command = this._nextFrameCommands[i];
 
                 if (_currentState.ViewId != command.viewId)
                 {
@@ -507,10 +449,11 @@ namespace Fe
                 Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
                 if (predefinedModelUniformLocation != -1)
                 {
-                    if (command.TransformMatrixIndex != -1)
-                    {
-                        transformMatrix = _matrixCache[command.TransformMatrixIndex];
-                    }
+                    //if (command.TransformMatrixIndex != -1)
+                    //{
+                    //    transformMatrix = _matrixCache[command.TransformMatrixIndex];
+                    //}
+                    transformMatrix = command.Transform;
 
                     unsafe
                     {
@@ -530,10 +473,6 @@ namespace Fe
             _context.SwapBuffers();
 #endif
         }
-
-        [DllImport("gdi32")]
-        private static extern int SwapBuffers(IntPtr hdc);
-
 
         /// <summary>
         /// Checks the version to ensure we have a valid rendering context.
@@ -561,9 +500,11 @@ namespace Fe
 
         private IntPtr _windowHandle; // Window handle.
 
+        private List<ICommandBucket> _commandBuckets;
+
         private ulong[] _sortKeys;
-        private CommandState[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
-        private CommandState[] _frameCommandBag; // Commands submitted for the next frame.
+        private Command[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
+        private Command[] _frameCommandBag; // Commands submitted for the next frame.
         private int _commandCount = 0; // Number of commands added for the next frame.        
 
         private FrameState _currentState;

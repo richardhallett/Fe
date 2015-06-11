@@ -1,54 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Fe
 {
-    /// <summary>
-    /// A command represents data that instructs the renderer what to do in the next frame.
-    /// </summary>   
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
     public class Command
     {
-        /// <summary>
-        /// The shader program to use for this command.
-        /// </summary>
-        /// <value>
-        /// The shader program.
-        /// </value>
+        public void SetShaderProgram(ShaderProgram shaderProgram)
+        {
+            this.ShaderProgram = shaderProgram;
+        }
+
+        public void SetVertexBuffer(VertexBufferBase vertexBuffer) 
+        {
+            this.VertexBuffer = vertexBuffer;
+        }
+
+        public void SetIndexBuffer(IndexBuffer indexBuffer)
+        {
+            this.IndexBuffer = indexBuffer;
+        }
+
+        //TODO: Make this compile option for generic matrix type?
+        public void SetTransform(Nml.Matrix4x4 matrix)
+        {
+            this.Transform = matrix;
+        }
+
+        public void SetUniformBuffer(UniformBuffer sharedUniforms)
+        {
+            this.SharedUniforms = sharedUniforms;
+        }
+
         public ShaderProgram ShaderProgram;
 
-        /// <summary>
-        /// Gets or sets a vertex buffer used for this command.
-        /// </summary>
-        /// <value>
-        /// The vertex buffer.
-        /// </value>
         public VertexBufferBase VertexBuffer;
 
-        /// <summary>
-        /// Gets or sets a index buffer used for this command.
-        /// </summary>
-        /// <value>
-        /// The index buffer.
-        /// </value>
-        public IndexBuffer IndexBuffer;
+        public IndexBuffer IndexBuffer;        
 
-        /// <summary>
-        /// The transform is used to give a matrix that can be used in shaders for transformations that is per command.
-        /// </summary>
-        /// <value>
-        /// A transform.
-        /// </value>
-        public Nml.Matrix4x4? Transform;
-
-        /// <summary>
-        /// A uniform buffer is shared across all commands that use it and passed through to the shader pipeline.
-        /// </summary>
-        /// <value>
-        /// A shared uniform buffer.
-        /// </value>
         public UniformBuffer SharedUniforms;
+
+        public Nml.Matrix4x4 Transform;
+
+        public int transformMatrixIndex;
+
+        public byte viewId;
+
+        private ulong sortKey;
     }
 }
