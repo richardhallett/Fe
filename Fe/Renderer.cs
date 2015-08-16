@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 #if RENDERER_GL
 using OpenTK;
@@ -23,15 +24,15 @@ namespace Fe
         /// </summary>
         public Renderer()
         {
-            _commandBuckets = new List<ICommandBucket>();
+            _commandBuckets = new List<CommandBucket>();
 
             _frameCommandBag = new Command[ushort.MaxValue];
             _nextFrameCommands = new Command[ushort.MaxValue];
 
-            for (uint i = 0; i < ushort.MaxValue; i++)
-            {
-                this._nextFrameCommands[i] = new Command();
-            }
+            //for (uint i = 0; i < ushort.MaxValue; i++)
+            //{
+            //    this._nextFrameCommands[i] = new Command();
+            //}
 
             _sortKeys = Enumerable.Repeat<ulong>(ulong.MaxValue, ushort.MaxValue).ToArray();
             _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
@@ -44,7 +45,7 @@ namespace Fe
             _glVBCache = new ResourceCache<GLBuffer>(4096);
             _glIBCache = new ResourceCache<GLBuffer>(4096);
 #endif
-            _currentState = new FrameState();
+            _currentState = new FrameState();            
         }
 
         /// <summary>
@@ -58,24 +59,32 @@ namespace Fe
         public int Height { get; private set; }
 
         /// <summary>
-        /// Initialises the renderer.
+        /// Initialises the this.
         /// </summary>
         public void Init()
         {
-#if RENDERER_GL
-
             if (this._windowHandle != IntPtr.Zero)
             {
                 // Create a GL context.
-                OpenTK.Platform.IWindowInfo wi = null;
-                wi = OpenTK.Platform.Utilities.CreateWindowsWindowInfo(_windowHandle);
-                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, wi, 3, 2, GraphicsContextFlags.Default);
+                this._windowInfo = OpenTK.Platform.Utilities.CreateWindowsWindowInfo(_windowHandle);
+                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, this._windowInfo, 3, 2, GraphicsContextFlags.Default);
                 this._context.LoadAll();
+                this._context.MakeCurrent(null);                
             }
             else
             {
                 //TODO: Logging to say that GL context wasn't created and assumed it's been setup by someone else.
             }
+
+            _renderThread = new Thread(this.RenderThread);
+            _renderThread.IsBackground = true;
+            _renderThread.Start();
+        }
+
+        public void RenderThread()
+        {
+#if RENDERER_GL
+            this._context.MakeCurrent(this._windowInfo);
 
             GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
@@ -87,27 +96,40 @@ namespace Fe
             GL.BindVertexArray(vaos[0]);
 #endif
             // Check we've got the right version of our rendering context set up.
-            CheckValidVersion();            
-        }      
+            CheckValidVersion();
+
+            while (!_stopRendering)
+            {                                
+                this._canRenderEvent.WaitOne();
+
+                // Draw the next frame.                               
+                this.Draw();
+
+                // Reset command bag
+                this._commandCount = 0;
+
+                this.Clean();
+
+                this._updateSem.Release();
+            }
+            
+            this.Destroy();            
+        }
 
         /// <summary>
         /// Updates the renderer and advances the next frame to be rendererd.
         /// </summary>
-        public void Update()
-        {                        
+        public void EndFrame()
+        {
+            this._canRenderEvent.Set();
+            this._updateSem.Wait();
+
             foreach (var bucket in _commandBuckets)
             {
                 bucket.Sort();
+
                 this._commandCount += bucket.Submit(ref this._nextFrameCommands, this._commandCount);
-            }
-
-            // Draw the next frame.
-            this.Draw();   
-            
-            // Reset command bag
-            this._commandCount = 0;
-
-            this.Clean();
+            }           
         }
 
         public CommandBucket AddCommandBucket(uint size, byte viewId = 0)
@@ -205,7 +227,7 @@ namespace Fe
         }
 
         /// <summary>
-        /// Gets the type of the renderer.
+        /// Gets the type of the this.
         /// </summary>
         /// <returns><see cref="RendererType"/></returns>
         public RendererType GetRendererType()
@@ -216,7 +238,7 @@ namespace Fe
         }
 
         /// <summary>
-        /// Reset the renderer.
+        /// Reset the this.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
@@ -253,6 +275,9 @@ namespace Fe
         internal void Draw()
         {
 #if RENDERER_GL
+            //TODO: Actual proper viewport code
+            //GL.Viewport(0, 0, 1280, 720);
+
             GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
 #endif
             // Go through each of our commands that are for this frame.
@@ -261,92 +286,49 @@ namespace Fe
                 // Next command to work with.
                 Command command = this._nextFrameCommands[i];
 
-                if (_currentState.ViewId != command.viewId)
-                {
-                    _currentState.ViewId = command.viewId;
-                    View view;
-                    if (!_views.TryGetValue(command.viewId, out view))
-                    {
-                        view = _defaultView;
-                    }
-
-                    if (view != null)
-                    {
 #if RENDERER_GL
-                        GL.Viewport(view.X, view.Y, view.Width, view.Height);
-
-                        // If we've defined a rectangle to scissor with for this view then lets do it.
-                        if (view.ScissorRect != null)
-                        {
-                            GL.Enable(EnableCap.ScissorTest);
-                            GL.Scissor(view.ScissorRect.Value.X, view.ScissorRect.Value.Y, view.ScissorRect.Value.Width, view.ScissorRect.Value.Height);
-                        }
-
-                        GL.ClearColor(view.ClearColour.Red, view.ClearColour.Green, view.ClearColour.Blue, view.ClearColour.Alpha);
-                        GL.ClearDepth(view.ClearDepth);
-                        GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
-#endif
-                    }
-                }
-
                 // Build Shader Program as appropriate     
-#if RENDERER_GL
+
                 GLShaderProgram program;
-#endif
                 // Have we already loaded and cached a shader program.
                 if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
                 {
-#if RENDERER_GL
                     // Build a OpenGL shader program from our commands ShaderProgram data.
                     program = new GLShaderProgram(command.ShaderProgram);
                     this._glProgramCache.Add(command.ShaderProgram, program);
-#endif
                 }
                 else
                 {
-#if RENDERER_GL
-                    program = _glProgramCache[command.ShaderProgram.ResourceIndex];
-#endif
+                    program = this._glProgramCache[command.ShaderProgram.ResourceIndex];
                 }
 
                 // Build Vertex Buffer as appropriate
-#if RENDERER_GL
                 GLBuffer vb;
-#endif
                 // Have we already loaded and cached a vertex buffer
                 if (command.VertexBuffer.ResourceIndex == ushort.MaxValue)
                 {
-#if RENDERER_GL
                     vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
                     vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
                     this._glVBCache.Add(command.VertexBuffer, vb);
-#endif
                 }
                 else
                 {
-#if RENDERER_GL
-                    vb = _glVBCache[command.VertexBuffer.ResourceIndex];
-#endif
+                    vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
                 }
 
                 // Build Index Buffer as appropriate
-#if RENDERER_GL
                 GLBuffer ib;
-#endif
+
                 // Have we already loaded and cached a vertex buffer
                 if (command.IndexBuffer.ResourceIndex == ushort.MaxValue)
                 {
-#if RENDERER_GL
                     ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
                     ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
                     this._glIBCache.Add(command.IndexBuffer, ib);
-#endif
                 }
                 else
                 {
-#if RENDERER_GL
-                    ib = _glIBCache[command.IndexBuffer.ResourceIndex];
-#endif
+                    ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
                 }
 
                 bool uniformsChanged = false;
@@ -361,7 +343,6 @@ namespace Fe
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
                 {
                     this._currentState.ShaderProgram = command.ShaderProgram;
-#if RENDERER_GL
 
                     GL.UseProgram(program.ProgramRef);
 
@@ -377,7 +358,7 @@ namespace Fe
                         foreach (var attribute in type.VertexDeclaration.Attributes)
                         {
                             VertexAttribPointerType glAttribType;
-                            glAttribMapping.TryGetValue(attribute.Type, out glAttribType);
+                            Renderer.glAttribMapping.TryGetValue(attribute.Type, out glAttribType);
 
                             GL.EnableVertexAttribArray(index);
                             GL.VertexAttribPointer(index, attribute.Size, glAttribType, attribute.Normalised, type.VertexDeclaration.Stride, new IntPtr(type.VertexDeclaration.Offsets[attribute.Name]));
@@ -394,7 +375,6 @@ namespace Fe
 
                     // Program changed, so we'll need to change the uniforms.
                     uniformsChanged = true;
-#endif
                 }
 
                 // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
@@ -441,13 +421,13 @@ namespace Fe
                     // Predefined locations
                     if (program.Uniforms.TryGetValue("_model", out uniformLocation))
                     {
-                        predefinedModelUniformLocation = uniformLocation;
+                        this.predefinedModelUniformLocation = uniformLocation;
                     }
                 }
 
                 // Per command transform
                 Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
-                if (predefinedModelUniformLocation != -1)
+                if (this.predefinedModelUniformLocation != -1)
                 {
                     //if (command.TransformMatrixIndex != -1)
                     //{
@@ -459,13 +439,14 @@ namespace Fe
                     {
                         float* matrix_ptr = &transformMatrix.M11;
                         {
-                            GL.UniformMatrix4(predefinedModelUniformLocation, 1, false, matrix_ptr);
+                            GL.UniformMatrix4(this.predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }
                     }
                 }
 
                 // Lets draw!
                 GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, ib.Size, OpenTK.Graphics.OpenGL.DrawElementsType.UnsignedInt, IntPtr.Zero);
+#endif
 
             }  // End of command list
 
@@ -499,15 +480,16 @@ namespace Fe
         }
 
         private IntPtr _windowHandle; // Window handle.
+        private OpenTK.Platform.IWindowInfo _windowInfo;
 
-        private List<ICommandBucket> _commandBuckets;
+        private List<CommandBucket> _commandBuckets;
 
         private ulong[] _sortKeys;
         private Command[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
         private Command[] _frameCommandBag; // Commands submitted for the next frame.
         private int _commandCount = 0; // Number of commands added for the next frame.        
 
-        private FrameState _currentState;
+        internal FrameState _currentState;
 
         private Nml.Matrix4x4[] _matrixCache; // Stores matrices cached that are used in commands.
         private int _matrixCacheCount = 0; // Current matrix index we're on for the cache.
@@ -515,17 +497,23 @@ namespace Fe
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
 
+        private readonly AutoResetEvent _canRenderEvent = new AutoResetEvent(false);
+        private readonly SemaphoreSlim _updateSem = new SemaphoreSlim(0, 2);
+        
+        private volatile bool _stopRendering = false;
+        private Thread _renderThread;
+
 #if RENDERER_GL
-        private ResourceCache<GLShaderProgram> _glProgramCache;
-        private ResourceCache<GLBuffer> _glVBCache;
-        private ResourceCache<GLBuffer> _glIBCache;
+        internal ResourceCache<GLShaderProgram> _glProgramCache;
+        internal ResourceCache<GLBuffer> _glVBCache;
+        internal ResourceCache<GLBuffer> _glIBCache;
         private IGraphicsContext _context;        
-        private int predefinedModelUniformLocation;
+        internal int predefinedModelUniformLocation;
 
         /// <summary>
         /// The gl attribute mapping
         /// </summary>
-        private static Dictionary<VertexAttributeType, OpenTK.Graphics.OpenGL.VertexAttribPointerType> glAttribMapping = new Dictionary<VertexAttributeType, OpenTK.Graphics.OpenGL.VertexAttribPointerType>() 
+        internal static Dictionary<VertexAttributeType, OpenTK.Graphics.OpenGL.VertexAttribPointerType> glAttribMapping = new Dictionary<VertexAttributeType, OpenTK.Graphics.OpenGL.VertexAttribPointerType>() 
         {
             {VertexAttributeType.Float, OpenTK.Graphics.OpenGL.VertexAttribPointerType.Float}, 
             {VertexAttributeType.Byte, OpenTK.Graphics.OpenGL.VertexAttribPointerType.UnsignedByte}, 
@@ -542,6 +530,8 @@ namespace Fe
             this._glProgramCache.Clean(true);
             this._glIBCache.Clean(true);
             this._glVBCache.Clean(true);
+
+            this._context.MakeCurrent(null);
             _context.Dispose();            
 #endif
         }
@@ -575,12 +565,16 @@ namespace Fe
                     // Dispose managed resources.                    
                 }
 
+                this._canRenderEvent.Set();
+                this._updateSem.Release();
+                this._stopRendering = true;
+                // Wait for the renderer thread to clean up.
+                _renderThread.Join();
+
                 // Call the appropriate methods to clean up
                 // unmanaged resources here.
                 // If disposing is false,
-                // only the following code is executed.
-
-                this.Destroy();
+                // only the following code is executed.                
 
                 // Note disposing has been done.
                 _disposed = true;

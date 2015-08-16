@@ -49,7 +49,8 @@ namespace StressTest1
 
             // Set the handle from our form so we let Fe create context/devices as appropriate.
             renderer.SetWindowHandle(form.Handle);
-            // Initialise defaults
+
+            // Initialise the renderer
             renderer.Init();
 
             // Create geometry layer command bucker
@@ -138,6 +139,12 @@ namespace StressTest1
                 sharedUniforms.Set(projectionUniform, projectionMatrix);
 
                 renderer.Reset(form.Width, form.Height);
+            };         
+
+            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            {
+                // Kill off the renderer and clean up all underlying resources.
+                renderer.Dispose();
             };
 
             Fe.Forms.Application.Run(form, () =>
@@ -210,11 +217,9 @@ namespace StressTest1
                 }
         //        );
 
-                renderer.Update();      
-            });
-
-            // Kill off the renderer and clean up all underlying resources.
-            renderer.Dispose();
+                // Submit current commands queued to the renderer for rendering.
+                renderer.EndFrame();      
+            });                       
         }
     }
 }

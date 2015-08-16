@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Fe
 {
-    [Serializable]
-    [StructLayout(LayoutKind.Sequential)]
+    //[Serializable]
+    //[StructLayout(LayoutKind.Sequential)]
     public class Command
     {
         public void SetShaderProgram(ShaderProgram shaderProgram)
@@ -37,6 +37,8 @@ namespace Fe
             this.SharedUniforms = sharedUniforms;
         }
 
+        public byte ViewId { get { return viewId; } set { viewId = value; } }
+
         public ShaderProgram ShaderProgram;
 
         public VertexBufferBase VertexBuffer;
@@ -45,6 +47,7 @@ namespace Fe
 
         public UniformBuffer SharedUniforms;
 
+        //TODO: This needs to be just a reference to the matrix data, stored in a cache or something
         public Nml.Matrix4x4 Transform;
 
         public int transformMatrixIndex;

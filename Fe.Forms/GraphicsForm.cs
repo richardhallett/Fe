@@ -56,9 +56,7 @@ namespace Fe.Forms
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e); 
-        }
-
-        
+        }        
     }
 }
 

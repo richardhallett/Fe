@@ -7,23 +7,25 @@ using System.Threading.Tasks;
 
 namespace Fe
 {
-    public class CommandBucket : ICommandBucket
-    {
+    public class CommandBucket
+    {      
         public CommandBucket(uint size, byte viewId = 0)
         {
             this.Size = size;            
             this.ViewId = viewId;
 
             this._commandCount = 0;
-            //this._keys = new TKey[size];
-            this._keys = new ulong[size];
-            this._commands = new Command[size];
+
+            this._nextKeys = new ulong[size];
+            this._currentKeys = new ulong[size];
+            this._nextCommands = new Command[size];
+            this._currentCommands = new Command[size];
             
             for (uint i = 0; i < size; i++)
             {
-                this._commands[i] = new Command();
+                this._nextCommands[i] = new Command();
+                this._currentCommands[i] = new Command();
             }
-            //this._keys = Enumerable.Repeat<T>(T.MaxValue, count).ToArray();
         }
 
         public Command AddCommand(ulong key)
@@ -38,33 +40,33 @@ namespace Fe
             int currentCommand = Interlocked.Increment(ref _commandCount) - 1;
 
             // Store the key
-            this._keys[currentCommand] = key;
+            this._nextKeys[currentCommand] = key;
             
             // Store the command
-            var command = this._commands[currentCommand];
-            command.viewId = ViewId;
+            var command = this._nextCommands[currentCommand];
+            command.ViewId = ViewId;
             
             return command;
         }
 
         public void Sort()
         {
-            Utils.RadixSort64<Command>(this._keys, this._commands, this.CommandCount);
+            Utils.RadixSort64<Command>(this._nextKeys, this._nextCommands, this.CommandCount);
         }
 
         public int Submit(ref Command[] commands, int start)
         {
-            for (int i = 0; i < this._commandCount; i++)
-            {
-                int newIndex = start + i;
-                commands[newIndex].IndexBuffer = _commands[i].IndexBuffer;
-                commands[newIndex].VertexBuffer = _commands[i].VertexBuffer;
-                commands[newIndex].ShaderProgram = _commands[i].ShaderProgram;
-                commands[newIndex].SharedUniforms = _commands[i].SharedUniforms;
-                commands[newIndex].Transform = _commands[i].Transform;
-                commands[newIndex].viewId = _commands[i].viewId;
-            }
-            
+            // Add next commands into main command list.
+            Array.Copy(_nextCommands, commands, this._commandCount);
+
+            // Swap command buffers
+            var tempCommands = _currentCommands;
+            var tempKeys = _currentKeys;
+            _currentCommands = _nextCommands;
+            _currentKeys = _nextKeys;
+            _nextCommands = tempCommands;
+            _nextKeys = tempKeys;            
+
             try
             {
                 return this._commandCount;
@@ -81,14 +83,10 @@ namespace Fe
 
         public byte ViewId { get; set; }
 
-        public Command[] Commands {
-            get {
-                return this._commands;
-            }
-        }
-
         private int _commandCount;
-        private ulong[] _keys;
-        private Command[] _commands;
+        private ulong[] _nextKeys;
+        private ulong[] _currentKeys;
+        private Command[] _nextCommands;
+        private Command[] _currentCommands;
     }
 }

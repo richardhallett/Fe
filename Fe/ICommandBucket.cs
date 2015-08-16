@@ -5,18 +5,18 @@ using System.Text;
 
 namespace Fe
 {
-    interface ICommandBucket
-    {
-        void Sort();
+    //interface ICommandBucket
+    //{
+    //    void Sort();
 
-        int Submit(ref Command[] commands, int start);
+    //    int Submit(ref ICommand[] commands, int start);
 
-        uint Size { get; set; }
+    //    uint Size { get; set; }
 
-        byte ViewId { get; set; }
+    //    byte ViewId { get; set; }
 
-        int CommandCount { get; }
+    //    int CommandCount { get; }
 
-        Command[] Commands { get; }
-    }
+    //   // ICommand[] Commands { get; }
+    //}
 }
