@@ -281,6 +281,14 @@ namespace Fe
                 Command command = this._nextFrameCommands[i];
 
 #if RENDERER_GL
+
+                if(command.ViewId != this._currentState.ViewId)
+                {
+                    _currentState.ViewId = command.ViewId;
+                    var view = _views[command.ViewId];
+                    GL.Viewport(view.X, view.Y, view.Width, view.Height);
+                }
+
                 // Build Shader Program as appropriate     
 
                 GLShaderProgram program;

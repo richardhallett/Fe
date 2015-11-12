@@ -52,7 +52,7 @@ namespace Fe
 
         public int transformMatrixIndex;
 
-        public byte viewId;
+        private byte viewId;
 
         private ulong sortKey;
     }
