@@ -280,9 +280,6 @@ namespace Fe
                 // Next command to work with.
                 Command command = this._nextFrameCommands[i];
 
-                // Abort this command if it's nulll
-            //    if(command == null)
-             //       continue;
 #if RENDERER_GL
                 // Build Shader Program as appropriate     
 
