@@ -57,7 +57,7 @@ namespace Fe
         public int Submit(ref Command[] commands, int start)
         {
             // Add next commands into main command list.
-            Array.Copy(_nextCommands, commands, this._commandCount);
+            Array.Copy(_nextCommands, 0, commands, start, this._commandCount);
 
             // Swap command buffers
             var tempCommands = _currentCommands;
