@@ -126,6 +126,12 @@ namespace StressTest1
                 renderer.Reset(form.Width, form.Height);
             };
 
+            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            {
+                // Kill off the renderer and clean up all underlying resources.
+                renderer.Dispose();
+            };
+
             var view1Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 0);
             var view2Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 1);
             
