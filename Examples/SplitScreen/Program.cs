@@ -162,7 +162,7 @@ namespace StressTest1
                      
                 }                
                 
-                renderer.Update();
+                renderer.EndFrame();
 
                 rotY += 0.001f;
             });

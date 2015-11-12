@@ -25,16 +25,8 @@ namespace Fe
         public Renderer()
         {
             _commandBuckets = new List<CommandBucket>();
-
-            _frameCommandBag = new Command[ushort.MaxValue];
             _nextFrameCommands = new Command[ushort.MaxValue];
 
-            //for (uint i = 0; i < ushort.MaxValue; i++)
-            //{
-            //    this._nextFrameCommands[i] = new Command();
-            //}
-
-            _sortKeys = Enumerable.Repeat<ulong>(ulong.MaxValue, ushort.MaxValue).ToArray();
             _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
             _matrixCacheCount = 0;
             _commandCount = 0;
@@ -108,8 +100,10 @@ namespace Fe
                 // Reset command bag
                 this._commandCount = 0;
 
+                // Clean resources
                 this.Clean();
 
+                // Release lock to allow updates to come in.
                 this._updateSem.Release();
             }
             
@@ -286,6 +280,9 @@ namespace Fe
                 // Next command to work with.
                 Command command = this._nextFrameCommands[i];
 
+                // Abort this command if it's nulll
+            //    if(command == null)
+             //       continue;
 #if RENDERER_GL
                 // Build Shader Program as appropriate     
 
@@ -482,12 +479,15 @@ namespace Fe
         private IntPtr _windowHandle; // Window handle.
         private OpenTK.Platform.IWindowInfo _windowInfo;
 
-        private List<CommandBucket> _commandBuckets;
-
-        private ulong[] _sortKeys;
+        private List<CommandBucket> _commandBuckets; // Sortable buckets of commands        
         private Command[] _nextFrameCommands; // Sorted list of commands that will be used for the next frame.
-        private Command[] _frameCommandBag; // Commands submitted for the next frame.
         private int _commandCount = 0; // Number of commands added for the next frame.        
+
+        // For handling the render update thread access
+        private readonly AutoResetEvent _canRenderEvent = new AutoResetEvent(false);
+        private readonly SemaphoreSlim _updateSem = new SemaphoreSlim(0, 2);
+        private volatile bool _stopRendering = false;
+        private Thread _renderThread;
 
         internal FrameState _currentState;
 
@@ -496,12 +496,6 @@ namespace Fe
 
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
-
-        private readonly AutoResetEvent _canRenderEvent = new AutoResetEvent(false);
-        private readonly SemaphoreSlim _updateSem = new SemaphoreSlim(0, 2);
-        
-        private volatile bool _stopRendering = false;
-        private Thread _renderThread;
 
 #if RENDERER_GL
         internal ResourceCache<GLShaderProgram> _glProgramCache;

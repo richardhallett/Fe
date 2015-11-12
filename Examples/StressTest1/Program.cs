@@ -186,7 +186,7 @@ namespace StressTest1
                 animTime += (float)frameTime * 0.0010f;
         
                 for (int x = 0; x < dim; x++)
-             //   Parallel.For(0, dim, x =>
+              //  Parallel.For(0, dim, x =>
                 {               
                     for (int y = 0; y < dim; y++)
                     {
@@ -215,7 +215,7 @@ namespace StressTest1
                         }
                     }
                 }
-        //        );
+           //     );
 
                 // Submit current commands queued to the renderer for rendering.
                 renderer.EndFrame();      
