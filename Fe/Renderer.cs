@@ -248,6 +248,8 @@ namespace Fe
             // Reset the default view
             this._defaultView = new View(0, 0, width, height);
             this._defaultView.ClearColour = new Colour4(0x719AB7FF);
+
+            ResetViewPort(this._defaultView);
         }
 
         /// <summary>
@@ -263,15 +265,19 @@ namespace Fe
 #endif
         }
 
+        internal void ResetViewPort(View view)
+        {
+#if RENDERER_GL
+            GL.Viewport(view.X, view.Y, view.Width, view.Height);
+#endif
+        }
+
         /// <summary>
         /// Render a frame.
         /// </summary>
         internal void Draw()
         {
 #if RENDERER_GL
-            //TODO: Actual proper viewport code
-            //GL.Viewport(0, 0, 1280, 720);
-
             GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
 #endif
             // Go through each of our commands that are for this frame.
@@ -282,15 +288,34 @@ namespace Fe
 
 #if RENDERER_GL
 
-                if(command.ViewId != this._currentState.ViewId)
+                View view = null;
+                if (command.ViewId != this._currentState.ViewId)
                 {
-                    _currentState.ViewId = command.ViewId;
-                    var view = _views[command.ViewId];
-                    GL.Viewport(view.X, view.Y, view.Width, view.Height);
+                    this._currentState.ViewId = command.ViewId;
+                    if (!_views.TryGetValue(command.ViewId, out view))
+                    {
+                        //TODO: Logging to say we failed loading a command specific view
+                        view = _defaultView;
+                    }
+                    
+                    ResetViewPort(view);
+                }
+
+                if (view != null)
+                {                
+                    // If we've defined a rectangle to scissor with for this view then lets do it.
+                    if (view.ScissorRect != null)
+                    {
+                        GL.Enable(EnableCap.ScissorTest);
+                        GL.Scissor(view.ScissorRect.Value.X, view.ScissorRect.Value.Y, view.ScissorRect.Value.Width, view.ScissorRect.Value.Height);
+                    }
+
+                    GL.ClearColor(view.ClearColour.Red, view.ClearColour.Green, view.ClearColour.Blue, view.ClearColour.Alpha);
+                    GL.ClearDepth(view.ClearDepth);
+                    GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
                 }
 
                 // Build Shader Program as appropriate     
-
                 GLShaderProgram program;
                 // Have we already loaded and cached a shader program.
                 if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
