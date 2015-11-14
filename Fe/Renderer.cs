@@ -269,6 +269,17 @@ namespace Fe
         {
 #if RENDERER_GL
             GL.Viewport(view.X, view.Y, view.Width, view.Height);
+
+            // If we've defined a rectangle to scissor with for this view then lets do it.
+            if (view.ScissorRect != null)
+            {
+                GL.Enable(EnableCap.ScissorTest);
+                GL.Scissor(view.ScissorRect.Value.X, view.ScissorRect.Value.Y, view.ScissorRect.Value.Width, view.ScissorRect.Value.Height);
+            }
+
+            GL.ClearColor(view.ClearColour.Red, view.ClearColour.Green, view.ClearColour.Blue, view.ClearColour.Alpha);
+            GL.ClearDepth(view.ClearDepth);
+            GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
 #endif
         }
 
@@ -287,11 +298,12 @@ namespace Fe
                 Command command = this._nextFrameCommands[i];
 
 #if RENDERER_GL
-
-                View view = null;
+                
                 if (command.ViewId != this._currentState.ViewId)
                 {
                     this._currentState.ViewId = command.ViewId;
+
+                    View view;
                     if (!_views.TryGetValue(command.ViewId, out view))
                     {
                         //TODO: Logging to say we failed loading a command specific view
@@ -299,20 +311,6 @@ namespace Fe
                     }
                     
                     ResetViewPort(view);
-                }
-
-                if (view != null)
-                {                
-                    // If we've defined a rectangle to scissor with for this view then lets do it.
-                    if (view.ScissorRect != null)
-                    {
-                        GL.Enable(EnableCap.ScissorTest);
-                        GL.Scissor(view.ScissorRect.Value.X, view.ScissorRect.Value.Y, view.ScissorRect.Value.Width, view.ScissorRect.Value.Height);
-                    }
-
-                    GL.ClearColor(view.ClearColour.Red, view.ClearColour.Green, view.ClearColour.Blue, view.ClearColour.Alpha);
-                    GL.ClearDepth(view.ClearDepth);
-                    GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
                 }
 
                 // Build Shader Program as appropriate     
