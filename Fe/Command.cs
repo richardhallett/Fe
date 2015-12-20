@@ -39,21 +39,16 @@ namespace Fe
 
         public byte ViewId { get { return viewId; } set { viewId = value; } }
 
-        public ShaderProgram ShaderProgram;
+        internal ShaderProgram ShaderProgram;
 
-        public VertexBufferBase VertexBuffer;
+        internal VertexBufferBase VertexBuffer;
 
-        public IndexBuffer IndexBuffer;        
+        internal IndexBuffer IndexBuffer;
 
-        public UniformBuffer SharedUniforms;
+        internal UniformBuffer SharedUniforms;
 
-        //TODO: This needs to be just a reference to the matrix data, stored in a cache or something
-        public Nml.Matrix4x4 Transform;
-
-        public int transformMatrixIndex;
+        internal Nml.Matrix4x4 Transform;
 
         private byte viewId;
-
-        private ulong sortKey;
     }
 }

@@ -26,9 +26,7 @@ namespace Fe
         {
             _commandBuckets = new List<CommandBucket>();
             _nextFrameCommands = new Command[ushort.MaxValue];
-
-            _matrixCache = new Nml.Matrix4x4[ushort.MaxValue];
-            _matrixCacheCount = 0;
+            
             _commandCount = 0;
             _views = new Dictionary<byte, View>();
 
@@ -257,7 +255,6 @@ namespace Fe
         /// </summary>
         internal void Clean()
         {
-            _matrixCacheCount = 0;
 #if RENDERER_GL
             this._glProgramCache.Clean();
             this._glIBCache.Clean();
@@ -454,10 +451,6 @@ namespace Fe
                 Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
                 if (this.predefinedModelUniformLocation != -1)
                 {
-                    //if (command.TransformMatrixIndex != -1)
-                    //{
-                    //    transformMatrix = _matrixCache[command.TransformMatrixIndex];
-                    //}
                     transformMatrix = command.Transform;
 
                     unsafe
@@ -518,9 +511,6 @@ namespace Fe
         private Thread _renderThread;
 
         internal FrameState _currentState;
-
-        private Nml.Matrix4x4[] _matrixCache; // Stores matrices cached that are used in commands.
-        private int _matrixCacheCount = 0; // Current matrix index we're on for the cache.
 
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
