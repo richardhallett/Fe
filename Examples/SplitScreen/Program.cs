@@ -147,24 +147,22 @@ namespace StressTest1
                 for (int i = 0; i < 5; i++ )
                 {
                     var cubeCommand = view1Bucket.AddCommand(1);
-                    cubeCommand.ShaderProgram = shaderProgram;
-                    cubeCommand.VertexBuffer = vb;
-                    cubeCommand.IndexBuffer = ib;
-                    cubeCommand.SharedUniforms = sharedUniforms;
-                    cubeCommand.Transform = Nml.Matrix4x4.Identity;
-
+                    cubeCommand.SetShaderProgram(shaderProgram);
+                    cubeCommand.SetVertexBuffer(vb);
+                    cubeCommand.SetIndexBuffer(ib);
+                    cubeCommand.SetUniformBuffer(sharedUniforms);
+                    
                     // Spin one way
-                    cubeCommand.Transform = Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f);
+                    cubeCommand.SetTransform(Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f));
 
                     var cubeCommand2 = view2Bucket.AddCommand(1);
-                    cubeCommand2.ShaderProgram = shaderProgram;
-                    cubeCommand2.VertexBuffer = vb;
-                    cubeCommand2.IndexBuffer = ib;
-                    cubeCommand2.SharedUniforms = sharedUniforms;
-                    cubeCommand2.Transform = Nml.Matrix4x4.Identity;
+                    cubeCommand2.SetShaderProgram(shaderProgram);
+                    cubeCommand2.SetVertexBuffer(vb);
+                    cubeCommand2.SetIndexBuffer(ib);
+                    cubeCommand2.SetUniformBuffer(sharedUniforms);                    
 
                     // Spin the other way
-                    cubeCommand2.Transform = Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f);
+                    cubeCommand2.SetTransform(Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f));
                      
                 }                
                 
