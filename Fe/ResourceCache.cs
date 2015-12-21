@@ -20,11 +20,6 @@ namespace Fe
         /// <param name="size">The number of cached resources we can store.</param>
         internal ResourceCache(ushort size)
         {
-            if (size == ushort.MaxValue)
-            {
-                Debug.Write(String.Format("Tried to create a resource cache for more than the maximum allowed {0}, reducing by 1", ushort.MaxValue));
-                size--;
-            }
             this.Size = size;
 
             this._handles = new Stack<ushort>(Enumerable.Range(0, size).Select(i => (ushort)i));
@@ -42,7 +37,7 @@ namespace Fe
         internal ushort Size { get; private set; }
 
         /// <summary>
-        /// Adds the specified graphics resource to the cache.
+        /// Adds the specified graphics resource to the cache, this sets the underlying core resource at the same time
         /// </summary>
         /// <param name="graphicsResource">The graphics resource.</param>
         /// <param name="coreResource">The core resource.</param>
@@ -63,8 +58,47 @@ namespace Fe
             // Let our main object keep the index reference for later lookup.
             graphicsResource.ResourceIndex = handleIndex;
 
+            // Underlying resource was passed in so we can say we're fully created
+            graphicsResource.Created = true;
+
             // Add the reference of our resource to the underlying index handle.
             _cacheLookup.Add(handleIndex, new WeakReference(graphicsResource, false));
+        }
+
+        /// <summary>
+        /// Adds the specified graphics resource but deferred for later full creation.
+        /// </summary>
+        /// <param name="graphicsResource">The graphics resource.</param>
+        internal void Add(GraphicsResource graphicsResource)
+        {
+            // Get a free index for lookup
+            if (_handles.Count == 0)
+            {
+                //Debug.WriteLine("Failed to create cached object of type " + this.Name);
+                return;
+            }
+
+            var handleIndex = _handles.Pop();
+            
+            // Let our main object keep the index reference for later lookup.
+            graphicsResource.ResourceIndex = handleIndex;
+
+            // Add the reference of our resource to the underlying index handle.
+            _cacheLookup.Add(handleIndex, new WeakReference(graphicsResource, false));
+        }
+
+        /// <summary>
+        /// Sets the underlying resource. i.e. useful if it was just added for deferred creation.
+        /// </summary>
+        /// <param name="graphicsResource">The graphics resource.</param>
+        /// <param name="coreResource">The core resource.</param>
+        internal void SetResource(GraphicsResource graphicsResource, T coreResource)
+        {
+            // Store the underlying resource
+            _resources[graphicsResource.ResourceIndex] = coreResource;
+            
+            // Underlying resource was passed in so we can say we're fully created
+            graphicsResource.Created = true;
         }
 
         /// <summary>
@@ -106,7 +140,11 @@ namespace Fe
                 {
                     ushort handleIndex = this._cacheCleanupQueue.Dequeue();
 
-                    _resources[handleIndex].Dispose();
+                    if (_resources[handleIndex] != null)
+                    {
+                        _resources[handleIndex].Dispose();
+                    }
+
                     _cacheLookup.Remove(handleIndex);
                 }
 
@@ -124,7 +162,10 @@ namespace Fe
             {
                 foreach (var index in this._cacheLookup.Keys)
                 {
-                    _resources[index].Dispose();
+                    if (_resources[index] != null)
+                    {
+                        _resources[index].Dispose();
+                    }
                 }
             }
         }

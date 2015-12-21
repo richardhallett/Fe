@@ -17,6 +17,7 @@ namespace Fe
         public GraphicsResource()
         {
             ResourceIndex = ushort.MaxValue;
+            Created = false;
         }
 
         /// <summary>
@@ -26,6 +27,14 @@ namespace Fe
         ///   <c>true</c> if changed; otherwise, <c>false</c>.
         /// </value>
         public bool Changed { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="GraphicsResource"/> is fully created, i.e. has an underlying resource attached in the backend.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if created; otherwise, <c>false</c>.
+        /// </value>
+        public bool Created { get; set; }
 
         /// <summary>
         /// An identifier into the backend resource pool.

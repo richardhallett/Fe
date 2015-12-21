@@ -124,12 +124,30 @@ namespace Fe
             }           
         }
 
+        /// <summary>
+        /// Adds a command bucket into the internal list to be used when submitting commands to the renderer.
+        /// </summary>
+        /// <param name="size">The size.</param>
+        /// <param name="viewId">The view identifier.</param>
+        /// <returns></returns>
         public CommandBucket AddCommandBucket(uint size, byte viewId = 0)
         {
             var bucket = new CommandBucket(size, viewId);
             _commandBuckets.Add(bucket);
 
             return bucket;
+        }
+
+        /// <summary>
+        /// Creates a shader program.        
+        /// </summary>
+        /// <param name="shaders">The shaders.</param>
+        /// <returns>A ShaderProgram that has been referenced internally by the renderer. It is the responsibility of the the user to hold onto the ShaderProgram or it will be cleaned up.</returns>
+        public ShaderProgram CreateShaderProgram(IReadOnlyList<Shader> shaders)
+        {
+            var shaderProgram = new ShaderProgram(shaders);
+            this._glProgramCache.Add(shaderProgram);
+            return shaderProgram;
         }
 
         /// <summary>
@@ -313,11 +331,11 @@ namespace Fe
                 // Build Shader Program as appropriate     
                 GLShaderProgram program;
                 // Have we already loaded and cached a shader program.
-                if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
+                if (!command.ShaderProgram.Created)
                 {
                     // Build a OpenGL shader program from our commands ShaderProgram data.
                     program = new GLShaderProgram(command.ShaderProgram);
-                    this._glProgramCache.Add(command.ShaderProgram, program);
+                    this._glProgramCache.SetResource(command.ShaderProgram, program);
                 }
                 else
                 {
@@ -327,7 +345,7 @@ namespace Fe
                 // Build Vertex Buffer as appropriate
                 GLBuffer vb;
                 // Have we already loaded and cached a vertex buffer
-                if (command.VertexBuffer.ResourceIndex == ushort.MaxValue)
+                if (!command.VertexBuffer.Created)
                 {
                     vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
                     vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
@@ -342,7 +360,7 @@ namespace Fe
                 GLBuffer ib;
 
                 // Have we already loaded and cached a vertex buffer
-                if (command.IndexBuffer.ResourceIndex == ushort.MaxValue)
+                if (!command.IndexBuffer.Created)
                 {
                     ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
                     ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
