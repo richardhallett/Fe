@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Fe
 {
+    /// <summary>
+    /// Represents a sortable collection of <see cref="Command"/>s
+    /// </summary>
     public class CommandBucket
-    {      
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandBucket"/> class.
+        /// </summary>
+        /// <param name="size">How many commands it can store</param>
+        /// <param name="viewId">Which view this command bucket will be rendered on.</param>
         public CommandBucket(uint size, byte viewId = 0)
         {
             this.Size = size;            
@@ -28,7 +36,12 @@ namespace Fe
             }
         }
 
-        public Command AddCommand(ulong key)
+        /// <summary>
+        /// Add a command to the bucket with specified sort key
+        /// </summary>
+        /// <param name="sortKey">Key used for sorting</param>
+        /// <returns></returns>
+        public Command AddCommand(ulong sortKey)
         {
             //if (CommandCount >= Size)
             //{
@@ -40,7 +53,7 @@ namespace Fe
             int currentCommand = Interlocked.Increment(ref _commandCount) - 1;
 
             // Store the key
-            this._nextKeys[currentCommand] = key;
+            this._nextKeys[currentCommand] = sortKey;
             
             // Store the command
             var command = this._nextCommands[currentCommand];
@@ -49,12 +62,21 @@ namespace Fe
             return command;
         }
 
-        public void Sort()
+        /// <summary>
+        /// Sorts the commands in the bucket based upon the keys assigned.
+        /// </summary>
+        internal void Sort()
         {
             Utils.RadixSort64<Command>(this._nextKeys, this._nextCommands, this.CommandCount);
         }
 
-        public int Submit(ref Command[] commands, int start)
+        /// <summary>
+        /// Submits all commands in the bucket to passed in commands array.
+        /// </summary>
+        /// <param name="commands">Command array that we're submitting to.</param>
+        /// <param name="start">Offset into the command list we want to start adding from.</param>
+        /// <returns></returns>
+        internal int Submit(ref Command[] commands, int start)
         {
             // Add next commands into main command list.
             Array.Copy(_nextCommands, 0, commands, start, this._commandCount);
@@ -77,11 +99,29 @@ namespace Fe
             }
         }
 
-        public uint Size{ get; set; }
+        /// <summary>
+        /// Size of the command bucket
+        /// </summary>
+        /// <value>
+        /// The size.
+        /// </value>
+        public uint Size{ get; private set; }
 
+        /// <summary>
+        /// Number of commands currently on the bucket.
+        /// </summary>
+        /// <value>
+        /// The command count.
+        /// </value>
         public int CommandCount { get { return _commandCount; } }
 
-        public byte ViewId { get; set; }
+        /// <summary>
+        /// View the bucket will render on
+        /// </summary>
+        /// <value>
+        /// The view identifier.
+        /// </value>
+        public byte ViewId { get; private set; }
 
         private int _commandCount;
         private ulong[] _nextKeys;

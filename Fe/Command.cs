@@ -9,6 +9,9 @@ namespace Fe
 {
     //[Serializable]
     //[StructLayout(LayoutKind.Sequential)]
+    /// <summary>
+    /// A command represents instructions to be used by the renderer on next pass
+    /// </summary>
     public class Command
     {
         public void SetShaderProgram(ShaderProgram shaderProgram)

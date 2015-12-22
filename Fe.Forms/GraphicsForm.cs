@@ -25,6 +25,9 @@ namespace Fe.Forms
             ClientSize = new System.Drawing.Size(1280, 720);
         }
 
+        /// <summary>
+        /// Helper for creating special parameters on the window
+        /// </summary>
         protected override CreateParams CreateParams
         {
             get

@@ -71,6 +71,9 @@ namespace Fe
             _renderThread.Start();
         }
 
+        /// <summary>
+        /// Main rendering code
+        /// </summary>
         public void RenderThread()
         {
 #if RENDERER_GL
@@ -148,74 +151,7 @@ namespace Fe
         //    var shaderProgram = new ShaderProgram(shaders);
         //    this._glProgramCache.Add(shaderProgram);
         //    return shaderProgram;
-        //}
-
-        /// <summary>
-        /// Submits the specified command to the renderer queue to be used in the next frame.
-        /// This is not a thread safe method, it must be called in the same context as the Renderer was created.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        /// <param name="viewId">The id of the view which the renderer will execute this command</param>
-//        public void Submit(CommandOld command, byte viewId = 0)
-//        {
-//            if (_commandCount >= ushort.MaxValue)
-//            {
-//                //TODO: Debug logging.
-//                return; // Oops can't add a command when we have more than we support.
-//            }
-
-//            Command newCommand = new Command();
-//            newCommand.IndexBuffer = command.IndexBuffer;
-//            newCommand.VertexBuffer = command.VertexBuffer;
-//            newCommand.SharedUniforms = command.SharedUniforms;
-//            newCommand.ShaderProgram = command.ShaderProgram;
-
-//            // Have we already loaded and cached a shader program.
-//            if (command.ShaderProgram.ResourceIndex == ushort.MaxValue)
-//            {
-//#if RENDERER_GL
-//                // Build a OpenGL shader program from our commands ShaderProgram data.
-//                GLShaderProgram program = new GLShaderProgram(command.ShaderProgram);
-//                this._glProgramCache.Add(command.ShaderProgram, program);
-//#endif
-//            }
-
-//            newCommand.viewId = viewId;
-//            //newCommand.sortKey = ulong.MaxValue;
-
-//            newCommand.TransformMatrixIndex = -1;
- 
-//            if (command.Transform != null)
-//            {
-//                if (_matrixCacheCount >= ushort.MaxValue)
-//                {
-//                    //TODO: Debug logging.
-//                    return; // Oops can't add this command because we have nowhere to store it's matrix.
-//                }
-//                this._matrixCache[_matrixCacheCount] = command.Transform.Value;
-//                newCommand.TransformMatrixIndex = _matrixCacheCount;
-//                _matrixCacheCount++;
-//            }
-
-//            // Work out the sort key
-//            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40;
-//            //ulong sortKey = (ulong)newCommand.ShaderProgram.ResourceIndex << 56 | (ulong)newCommand.viewId << 40 | 32 << 8;
-
-//            ulong depth = 0;
-//            ulong programkey = (ulong)newCommand.ShaderProgram.ResourceIndex << 0x20;
-//            ulong trans = 0 << 0x29;
-//            ulong seq = 0 << 0x2c;
-//            ulong view = (ulong)newCommand.viewId << 0x37;
-//            ulong sortKey = depth | programkey | trans | (ulong)1<<0x2b | seq | view;
-            
-//            this._sortKeys[_commandCount] = sortKey;
-
-//            // Add the command to the bag of commands we want for the next frame.
-//            this._frameCommandBag[_commandCount] = newCommand;            
-
-//            // Increase total count of commands we have for next frame.
-//            this._commandCount++;
-//        }
+        //}        
 
         /// <summary>
         /// Stores a view against a given identifier.
