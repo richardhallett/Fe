@@ -26,8 +26,6 @@
     <Compile Include="Colour4.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandBucket.cs" />
-    <Compile Include="CommandOld.cs" />
-    <Compile Include="CommandState.cs" />
     <Compile Include="FrameState.cs" />
     <Compile Include="GLBuffer.cs" />
     <Compile Include="GLShaderProgram.cs" />
@@ -45,6 +43,7 @@
     <Compile Include="Uniform.cs" />
     <Compile Include="UniformBuffer.cs" />
     <Compile Include="UniformType.cs" />
+    <Compile Include="Utils.cs" />
     <Compile Include="VertexAttribute.cs" />
     <Compile Include="VertexAttributeType.cs" />
     <Compile Include="VertexBuffer.cs" />
