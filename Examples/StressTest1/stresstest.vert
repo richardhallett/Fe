@@ -12,7 +12,6 @@ uniform mat4 projectionMatrix;
 void main()
 {	
 	gl_Position = position * _model * projectionMatrix;      
-	//gl_Position = position * _model;
 	
 	diffuseColor = colour;
 }
