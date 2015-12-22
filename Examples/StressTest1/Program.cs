@@ -73,8 +73,7 @@ namespace StressTest1
             }
 
             // Link shaders into a program for binding.
-            var shaderProgram = renderer.CreateShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
-
+            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
             {

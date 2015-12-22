@@ -138,17 +138,17 @@ namespace Fe
             return bucket;
         }
 
-        /// <summary>
-        /// Creates a shader program.        
-        /// </summary>
-        /// <param name="shaders">The shaders.</param>
-        /// <returns>A ShaderProgram that has been referenced internally by the renderer. It is the responsibility of the the user to hold onto the ShaderProgram or it will be cleaned up.</returns>
-        public ShaderProgram CreateShaderProgram(IReadOnlyList<Shader> shaders)
-        {
-            var shaderProgram = new ShaderProgram(shaders);
-            this._glProgramCache.Add(shaderProgram);
-            return shaderProgram;
-        }
+        ///// <summary>
+        ///// Creates a shader program.        
+        ///// </summary>
+        ///// <param name="shaders">The shaders.</param>
+        ///// <returns>A ShaderProgram that has been referenced internally by the renderer. It is the responsibility of the the user to hold onto the ShaderProgram or it will be cleaned up.</returns>
+        //public ShaderProgram CreateShaderProgram(IReadOnlyList<Shader> shaders)
+        //{
+        //    var shaderProgram = new ShaderProgram(shaders);
+        //    this._glProgramCache.Add(shaderProgram);
+        //    return shaderProgram;
+        //}
 
         /// <summary>
         /// Submits the specified command to the renderer queue to be used in the next frame.
@@ -335,7 +335,7 @@ namespace Fe
                 {
                     // Build a OpenGL shader program from our commands ShaderProgram data.
                     program = new GLShaderProgram(command.ShaderProgram);
-                    this._glProgramCache.SetResource(command.ShaderProgram, program);
+                    this._glProgramCache.Add(command.ShaderProgram, program);
                 }
                 else
                 {

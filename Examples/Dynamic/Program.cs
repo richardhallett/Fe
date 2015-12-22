@@ -73,7 +73,7 @@ namespace StressTest1
             }
 
             // Link shaders into a program for binding.
-            var shaderProgram = renderer.CreateShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
+            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
 
             // Build plane data
             var plane = new Fe.Extra.Geometry.Plane(30, 30, 30, 30);
@@ -107,7 +107,7 @@ namespace StressTest1
             float rotTime = 0.0f;
             float waveyTime = 0.0f;
 
-            form.Text = "Dynamic vertex buffer update";
+            form.Text = "Dynamic vertex buffer update example";
 
             form.Resize += (object o, EventArgs e) =>
             {
