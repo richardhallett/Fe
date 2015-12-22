@@ -356,6 +356,13 @@ namespace Fe
                     vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
                 }
 
+                // Do we need to update the vertex buffer data
+                if (command.VertexBuffer.Changed)
+                {
+                    vb.Update(command.VertexBuffer.Data, 0);
+                    command.VertexBuffer.Changed = false;
+                }
+
                 // Build Index Buffer as appropriate
                 GLBuffer ib;
 
@@ -369,6 +376,13 @@ namespace Fe
                 else
                 {
                     ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
+                }
+
+                // Do we need to update the index buffer data
+                if (command.IndexBuffer.Changed)
+                {
+                    ib.Update(command.IndexBuffer.Data, 0);
+                    command.IndexBuffer.Changed = false;
                 }
 
                 bool uniformsChanged = false;
