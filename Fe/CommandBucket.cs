@@ -43,11 +43,11 @@ namespace Fe
         /// <returns></returns>
         public Command AddCommand(ulong sortKey)
         {
-            //if (CommandCount >= Size)
-            //{
-            //    //TODO: Debug logging.
-            //    return null; // Oops can't add a command when we have more than we support.
-            //}
+            if (CommandCount >= Size)
+            {
+                //TODO: Debug logging.
+                return null; // Oops can't add a command when we have more than we support.
+            }
 
             // Increase total count of commands we have for next frame.            
             int currentCommand = Interlocked.Increment(ref _commandCount) - 1;

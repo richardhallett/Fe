@@ -25,15 +25,15 @@ namespace Fe
         public Renderer()
         {
             _commandBuckets = new List<CommandBucket>();
-            _nextFrameCommands = new Command[ushort.MaxValue];
+            _nextFrameCommands = new Command[MaxCommands];
             
             _commandCount = 0;
             _views = new Dictionary<byte, View>();
 
 #if RENDERER_GL
-            _glProgramCache = new ResourceCache<GLShaderProgram>(512);
-            _glVBCache = new ResourceCache<GLBuffer>(4096);
-            _glIBCache = new ResourceCache<GLBuffer>(4096);
+            _glProgramCache = new ResourceCache<GLShaderProgram>(MaxShaderPrograms);
+            _glVBCache = new ResourceCache<GLBuffer>(MaxVertexBuffers);
+            _glIBCache = new ResourceCache<GLBuffer>(MaxIndexBuffers);
 #endif
             _currentState = new FrameState();            
         }
@@ -82,6 +82,9 @@ namespace Fe
             GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
             GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
+            //GL.Disable(EnableCap.CullFace);
+            //GL.Enable(EnableCap.Blend);
+            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             // Create a dummy VAO as it's required for Core profile
             var vaos = new int[1];
@@ -465,6 +468,12 @@ namespace Fe
 #endif
         }
 
+        // Constants
+        private const int MaxShaderPrograms = 512;
+        private const int MaxVertexBuffers = 4096;
+        private const int MaxIndexBuffers = 4096;
+        private const int MaxCommands = 131070;
+
         private IntPtr _windowHandle; // Window handle.
         private OpenTK.Platform.IWindowInfo _windowInfo;
 
@@ -477,11 +486,12 @@ namespace Fe
         private readonly SemaphoreSlim _updateSem = new SemaphoreSlim(0, 2);
         private volatile bool _stopRendering = false;
         private Thread _renderThread;
-
-        internal FrameState _currentState;
-
+        
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
+
+        // Holds current state of the frame
+        internal FrameState _currentState;
 
 #if RENDERER_GL
         internal ResourceCache<GLShaderProgram> _glProgramCache;
