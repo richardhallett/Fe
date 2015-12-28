@@ -121,7 +121,10 @@ namespace StressTest1
                 // Set up a projection matrix
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / ((float)form.Height / 2), 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0.0f, 0.0f, -5.0f);
-                sharedUniforms.Set(projectionUniform, projectionMatrix);
+
+                view1.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
+                projectionMatrix *= Nml.Matrix4x4.Translate(0.0f, 0.0f, -5.0f);
+                view2.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
 
                 renderer.Reset(form.Width, form.Height);
             };
@@ -150,7 +153,6 @@ namespace StressTest1
                     cubeCommand.SetShaderProgram(shaderProgram);
                     cubeCommand.SetVertexBuffer(vb);
                     cubeCommand.SetIndexBuffer(ib);
-                    cubeCommand.SetUniformBuffer(sharedUniforms);
                     
                     // Spin one way
                     cubeCommand.SetTransform(Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f));
@@ -159,7 +161,6 @@ namespace StressTest1
                     cubeCommand2.SetShaderProgram(shaderProgram);
                     cubeCommand2.SetVertexBuffer(vb);
                     cubeCommand2.SetIndexBuffer(ib);
-                    cubeCommand2.SetUniformBuffer(sharedUniforms);                    
 
                     // Spin the other way
                     cubeCommand2.SetTransform(Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f));

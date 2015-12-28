@@ -253,17 +253,19 @@ namespace Fe
 
 #if RENDERER_GL
 
+                bool viewChanged = false;
+                View view = null;
                 if (command.ViewId != this._currentState.ViewId)
                 {
+                    viewChanged = true;
                     this._currentState.ViewId = command.ViewId;
-
-                    View view;
+                    
                     if (!_views.TryGetValue(command.ViewId, out view))
                     {
                         //TODO: Logging to say we failed loading a command specific view
                         view = _defaultView;
                     }
-
+                    
                     ResetViewPort(view);
                 }
 
@@ -335,12 +337,12 @@ namespace Fe
                     }
                 }
 
-                bool uniformsChanged = false;
+                bool sharedUniformsChanged = false;
                 // Different uniform to current state then we'll need to rebind whatever the new ones are.
                 if (command.SharedUniforms != this._currentState.SharedUniforms)
                 {
                     this._currentState.SharedUniforms = command.SharedUniforms;
-                    uniformsChanged = true;
+                    sharedUniformsChanged = true;
                 }
 
                 // Do we need to change the state for the current active program.
@@ -377,12 +379,66 @@ namespace Fe
                         GL.BindBuffer(BufferTarget.ElementArrayBuffer, ib.BufferId);
                     }
 
+                    // Predefined locations
+                    int uniformLocation;
+                    // Model transform
+                    if (program.Uniforms.TryGetValue("_model", out uniformLocation))
+                    {
+                        this.predefinedModelUniformLocation = uniformLocation;
+                    }
+
+                    // View transform
+                    if (program.Uniforms.TryGetValue("_view", out uniformLocation))
+                    {
+                        this.predefinedViewUniformLocation = uniformLocation;                        
+                    }
+
+                    // Projection transform
+                    if (program.Uniforms.TryGetValue("_projection", out uniformLocation))
+                    {
+                        this.predefinedProjectionUniformLocation = uniformLocation;                        
+                    }
+
                     // Program changed, so we'll need to change the uniforms.
-                    uniformsChanged = true;
+                    sharedUniformsChanged = true;
+                }
+
+                // For view changes we need to set view/projection matrices again
+                if(viewChanged)
+                {
+                    // View transform
+                    if (predefinedViewUniformLocation != -1)
+                    {
+                        Nml.Matrix4x4 viewMatrix = Nml.Matrix4x4.Identity;
+                        viewMatrix = view.ViewMatrix;
+
+                        unsafe
+                        {
+                            float* matrix_ptr = &viewMatrix.M11;
+                            {
+                                GL.UniformMatrix4(predefinedViewUniformLocation, 1, false, matrix_ptr);
+                            }
+                        }
+                    }
+
+                    // Projection transform
+                    if (predefinedProjectionUniformLocation != -1)
+                    {
+                        Nml.Matrix4x4 projectionMatrix = Nml.Matrix4x4.Identity;
+                        projectionMatrix = view.ProjectionMatrix;
+
+                        unsafe
+                        {
+                            float* matrix_ptr = &projectionMatrix.M11;
+                            {
+                                GL.UniformMatrix4(predefinedProjectionUniformLocation, 1, false, matrix_ptr);
+                            }
+                        }
+                    }
                 }
 
                 // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
-                if (command.SharedUniforms != null && uniformsChanged)
+                if (command.SharedUniforms != null && sharedUniformsChanged)
                 {
                     int uniformLocation;
                     foreach (var uniform in command.SharedUniforms._uniforms)
@@ -421,18 +477,12 @@ namespace Fe
                             }
                         }
                     }
-
-                    // Predefined locations
-                    if (program.Uniforms.TryGetValue("_model", out uniformLocation))
-                    {
-                        this.predefinedModelUniformLocation = uniformLocation;
-                    }
                 }
 
-                // Per command transform
-                Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
+                // Per command transform                
                 if (this.predefinedModelUniformLocation != -1)
                 {
+                    Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
                     transformMatrix = command.Transform;
 
                     unsafe
@@ -513,6 +563,8 @@ namespace Fe
         internal ResourceCache<GLBuffer> _glIBCache;
         private IGraphicsContext _context;        
         internal int predefinedModelUniformLocation;
+        internal int predefinedViewUniformLocation;
+        internal int predefinedProjectionUniformLocation;
 
         /// <summary>
         /// The gl attribute mapping

@@ -54,6 +54,19 @@ namespace Fe
         }
 
         /// <summary>
+        /// Sets the view and projection matrix for this view.
+        /// All commands renderered to this view will use these matrices.
+        /// These will be passed through to the shader as predefined constants _view and _projection.
+        /// </summary>
+        /// <param name="viewMatrix">The view matrix.</param>
+        /// <param name="projectionMatrix">The projection matrix.</param>
+        public void SetTransform(Nml.Matrix4x4 viewMatrix, Nml.Matrix4x4 projectionMatrix)
+        {
+            ViewMatrix = viewMatrix;
+            ProjectionMatrix = projectionMatrix;
+        }
+
+        /// <summary>
         /// The colour the view is cleared with.
         /// </summary>
         public Colour4 ClearColour { get; set; }
@@ -100,5 +113,15 @@ namespace Fe
         /// The scissor rect.
         /// </value>
         public ScissorRect? ScissorRect { get; set; }
+
+        /// <summary>
+        /// The view matrix for this view.
+        /// </summary>
+        internal Nml.Matrix4x4 ViewMatrix;
+
+        /// <summary>
+        /// The projection matrix for this view.
+        /// </summary>
+        internal Nml.Matrix4x4 ProjectionMatrix;
     }
 }

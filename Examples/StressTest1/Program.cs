@@ -132,10 +132,14 @@ namespace StressTest1
 
             form.Resize += (object o, EventArgs e) =>
             {
+                var view = new Fe.View(0, 0, form.Width, form.Height);
+                renderer.SetView(0, view);
+
                 // Set up a projection matrix
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, -5.0f, -50.0f);
-                sharedUniforms.Set(projectionUniform, projectionMatrix);
+
+                view.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
 
                 renderer.Reset(form.Width, form.Height);
             };         
@@ -196,8 +200,7 @@ namespace StressTest1
                             cubeCommand.SetShaderProgram(shaderProgram);
                             cubeCommand.SetVertexBuffer(vb);
                             cubeCommand.SetIndexBuffer(ib);
-                            cubeCommand.SetUniformBuffer(sharedUniforms);
-
+                         
                             Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
 
                             // Rotate it to make look pretty    
