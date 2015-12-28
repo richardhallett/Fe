@@ -102,12 +102,7 @@ namespace StressTest1
 
             // Create vertex buffer for our cube
             var vb = new Fe.VertexBuffer<PosColorVertex>(vertices);
-            var ib = new Fe.IndexBuffer(indexPositions);
-
-            // Create shared uniforms
-            Fe.Uniform projectionUniform = new Fe.Uniform("projectionMatrix", Fe.UniformType.Matrix4x4f);
-
-            Fe.UniformBuffer sharedUniforms = new Fe.UniformBuffer();
+            var ib = new Fe.IndexBuffer(indexPositions);            
 
             form.Resize += (object o, EventArgs e) =>
             {
