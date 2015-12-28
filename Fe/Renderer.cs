@@ -252,7 +252,7 @@ namespace Fe
                 Command command = this._nextFrameCommands[i];
 
 #if RENDERER_GL
-                
+
                 if (command.ViewId != this._currentState.ViewId)
                 {
                     this._currentState.ViewId = command.ViewId;
@@ -263,8 +263,14 @@ namespace Fe
                         //TODO: Logging to say we failed loading a command specific view
                         view = _defaultView;
                     }
-                    
+
                     ResetViewPort(view);
+                }
+
+                if (command.ShaderProgram == null)
+                {
+                    //TODO: Log the fact it skipped a command due to no shader program
+                    continue;
                 }
 
                 // Build Shader Program as appropriate     
@@ -282,46 +288,51 @@ namespace Fe
                 }
 
                 // Build Vertex Buffer as appropriate
-                GLBuffer vb;
-                // Have we already loaded and cached a vertex buffer
-                if (!command.VertexBuffer.Created)
+                GLBuffer vb = null;
+                if (command.VertexBuffer != null)
                 {
-                    vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
-                    vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
-                    this._glVBCache.Add(command.VertexBuffer, vb);
-                }
-                else
-                {
-                    vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
-                }
+                    // Have we already loaded and cached a vertex buffer
+                    if (!command.VertexBuffer.Created)
+                    {
+                        vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
+                        vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
+                        this._glVBCache.Add(command.VertexBuffer, vb);
+                    }
+                    else
+                    {
+                        vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
+                    }
 
-                // Do we need to update the vertex buffer data
-                if (command.VertexBuffer.Changed)
-                {
-                    vb.Update(command.VertexBuffer.Data, 0);
-                    command.VertexBuffer.Changed = false;
+                    // Do we need to update the vertex buffer data
+                    if (command.VertexBuffer.Changed)
+                    {
+                        vb.Update(command.VertexBuffer.Data, 0);
+                        command.VertexBuffer.Changed = false;
+                    }
                 }
 
                 // Build Index Buffer as appropriate
-                GLBuffer ib;
+                GLBuffer ib = null;
+                if (command.IndexBuffer != null)
+                {
+                    // Have we already loaded and cached a vertex buffer
+                    if (!command.IndexBuffer.Created)
+                    {
+                        ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
+                        ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
+                        this._glIBCache.Add(command.IndexBuffer, ib);
+                    }
+                    else
+                    {
+                        ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
+                    }
 
-                // Have we already loaded and cached a vertex buffer
-                if (!command.IndexBuffer.Created)
-                {
-                    ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
-                    ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
-                    this._glIBCache.Add(command.IndexBuffer, ib);
-                }
-                else
-                {
-                    ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
-                }
-
-                // Do we need to update the index buffer data
-                if (command.IndexBuffer.Changed)
-                {
-                    ib.Update(command.IndexBuffer.Data, 0);
-                    command.IndexBuffer.Changed = false;
+                    // Do we need to update the index buffer data
+                    if (command.IndexBuffer.Changed)
+                    {
+                        ib.Update(command.IndexBuffer.Data, 0);
+                        command.IndexBuffer.Changed = false;
+                    }
                 }
 
                 bool uniformsChanged = false;
@@ -434,7 +445,10 @@ namespace Fe
                 }
 
                 // Lets draw!
-                GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, ib.Size, OpenTK.Graphics.OpenGL.DrawElementsType.UnsignedInt, IntPtr.Zero);
+                if (ib != null)
+                {
+                    GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, ib.Size, OpenTK.Graphics.OpenGL.DrawElementsType.UnsignedInt, IntPtr.Zero);
+                }
 #endif
 
             }  // End of command list
