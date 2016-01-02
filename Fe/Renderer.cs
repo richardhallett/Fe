@@ -35,7 +35,9 @@ namespace Fe
             _glVBCache = new ResourceCache<GLBuffer>(MaxVertexBuffers);
             _glIBCache = new ResourceCache<GLBuffer>(MaxIndexBuffers);
 #endif
-            _currentState = new FrameState();            
+            _currentState = new FrameState();
+
+            _defaultBlendState = new BlendState();
         }
 
         /// <summary>
@@ -64,6 +66,7 @@ namespace Fe
             else
             {
                 //TODO: Logging to say that GL context wasn't created and assumed it's been setup by someone else.
+
             }
 
             _renderThread = new Thread(this.RenderThread);
@@ -77,14 +80,12 @@ namespace Fe
         public void RenderThread()
         {
 #if RENDERER_GL
-            this._context.MakeCurrent(this._windowInfo);
+            this._context.MakeCurrent(this._windowInfo);            
 
             GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
             GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
             //GL.Disable(EnableCap.CullFace);
-            //GL.Enable(EnableCap.Blend);
-            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             // Create a dummy VAO as it's required for Core profile
             var vaos = new int[1];
@@ -93,6 +94,9 @@ namespace Fe
 #endif
             // Check we've got the right version of our rendering context set up.
             CheckValidVersion();
+
+            // Do an initial reset.
+            Reset(this.Width, this.Height);
 
             while (!_stopRendering)
             {                                
@@ -337,6 +341,45 @@ namespace Fe
                     }
                 }
 
+                // Set default blend state for anything that doesn't have one explicitly set.
+                if(command.BlendState == null)
+                {
+                    command.BlendState = _defaultBlendState;
+                }
+
+                // Is the blend state different if so we need to set it.
+                if (command.BlendState != this._currentState.BlendState)
+                {
+                    this._currentState.BlendState = command.BlendState;
+                    var bs = command.BlendState;
+                    
+                    if (bs.EnableBlending)
+                    {
+                        GL.Enable(EnableCap.Blend);
+
+                        var colourOp = glBlendOperationMapping[bs.ColourOperation];
+                        var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
+
+                        GL.BlendEquationSeparate(colourOp, alphaOp);
+
+                        var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
+                        var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
+                        var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
+                        var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
+
+                        GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
+
+                        if(bs.BlendConstant != null)
+                        {
+                            GL.BlendColor(bs.BlendConstant.Value.Red, bs.BlendConstant.Value.Green,
+                                          bs.BlendConstant.Value.Blue, bs.BlendConstant.Value.Alpha);
+                        }
+                    } else
+                    {
+                        GL.Disable(EnableCap.Blend);
+                    }
+                }
+
                 bool sharedUniformsChanged = false;
                 // Different uniform to current state then we'll need to rebind whatever the new ones are.
                 if (command.SharedUniforms != this._currentState.SharedUniforms)
@@ -480,10 +523,10 @@ namespace Fe
                 }
 
                 // Per command transform                
-                if (this.predefinedModelUniformLocation != -1)
+                if (this.predefinedModelUniformLocation != -1 && command.Transform != null)
                 {
                     Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
-                    transformMatrix = command.Transform;
+                    transformMatrix = command.Transform.Value;
 
                     unsafe
                     {
@@ -554,6 +597,8 @@ namespace Fe
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
 
+        private BlendState _defaultBlendState; // Default blend state when none has been set
+
         // Holds current state of the frame
         internal FrameState _currentState;
 
@@ -576,9 +621,70 @@ namespace Fe
             {VertexAttributeType.Short, OpenTK.Graphics.OpenGL.VertexAttribPointerType.Short}
         };
 
+        /// <summary>
+        /// Mapping of BlendFactor to OpenGL equivelents.
+        /// </summary>
+        internal static Dictionary<BlendFactor, BlendingFactorSrc> glSrcBlendFactorMapping = new Dictionary<BlendFactor, BlendingFactorSrc>()
+        {
+            {BlendFactor.Zero, BlendingFactorSrc.Zero},
+            {BlendFactor.One, BlendingFactorSrc.One},
+            {BlendFactor.SourceColour, BlendingFactorSrc.SrcColor},
+            {BlendFactor.InvertSourceColour, BlendingFactorSrc.OneMinusSrcColor},
+            {BlendFactor.DestinationColour, BlendingFactorSrc.DstColor},
+            {BlendFactor.InvertDestinationColour, BlendingFactorSrc.OneMinusDstColor},
+            {BlendFactor.SourceAlpha, BlendingFactorSrc.SrcAlpha},
+            {BlendFactor.InvertSourceAlpha, BlendingFactorSrc.OneMinusSrcAlpha},
+            {BlendFactor.DestinationAlpha, BlendingFactorSrc.DstAlpha},
+            {BlendFactor.InvertDestinationAlpha, BlendingFactorSrc.OneMinusDstAlpha},
+            {BlendFactor.ConstantColour, BlendingFactorSrc.ConstantColor},
+            {BlendFactor.InvertConstantColour, BlendingFactorSrc.OneMinusConstantColor},
+            {BlendFactor.ConstantAlpha, BlendingFactorSrc.ConstantAlpha},
+            {BlendFactor.InvertConstantAlpha, BlendingFactorSrc.OneMinusConstantAlpha},
+            {BlendFactor.SourceAlphaSaturation, BlendingFactorSrc.SrcAlphaSaturate},
+            {BlendFactor.Source1Colour, BlendingFactorSrc.Src1Color},
+            {BlendFactor.InvertSource1Colour, BlendingFactorSrc.OneMinusSrc1Color},
+            {BlendFactor.Source1Alpha, BlendingFactorSrc.Src1Alpha},
+            {BlendFactor.InvertSource1Alpha, BlendingFactorSrc.OneMinusSrc1Alpha}
+        };
+
+        /// <summary>
+        /// Mapping of BlendFactor to OpenGL equivelents.
+        /// </summary>
+        internal static Dictionary<BlendFactor, BlendingFactorDest> glDstBlendFactorMapping = new Dictionary<BlendFactor, BlendingFactorDest>()
+        {
+            {BlendFactor.Zero, BlendingFactorDest.Zero},
+            {BlendFactor.One, BlendingFactorDest.One},
+            {BlendFactor.SourceColour, BlendingFactorDest.SrcColor},
+            {BlendFactor.InvertSourceColour, BlendingFactorDest.OneMinusSrcColor},
+            {BlendFactor.DestinationColour, BlendingFactorDest.DstColor},
+            {BlendFactor.InvertDestinationColour, BlendingFactorDest.OneMinusDstColor},
+            {BlendFactor.SourceAlpha, BlendingFactorDest.SrcAlpha},
+            {BlendFactor.InvertSourceAlpha, BlendingFactorDest.OneMinusSrcAlpha},
+            {BlendFactor.DestinationAlpha, BlendingFactorDest.DstAlpha},
+            {BlendFactor.InvertDestinationAlpha, BlendingFactorDest.OneMinusDstAlpha},
+            {BlendFactor.ConstantColour, BlendingFactorDest.ConstantColor},
+            {BlendFactor.InvertConstantColour, BlendingFactorDest.OneMinusConstantColor},
+            {BlendFactor.ConstantAlpha, BlendingFactorDest.ConstantAlpha},
+            {BlendFactor.InvertConstantAlpha, BlendingFactorDest.OneMinusConstantAlpha},
+            {BlendFactor.SourceAlphaSaturation, BlendingFactorDest.SrcAlphaSaturate},
+            {BlendFactor.Source1Colour, BlendingFactorDest.Src1Color},
+            {BlendFactor.InvertSource1Colour, BlendingFactorDest.OneMinusSrc1Color},
+            {BlendFactor.Source1Alpha, BlendingFactorDest.Src1Alpha},
+            {BlendFactor.InvertSource1Alpha, BlendingFactorDest.OneMinusSrc1Alpha}
+        };
+
+        internal static Dictionary<BlendOperation, BlendEquationMode> glBlendOperationMapping = new Dictionary<BlendOperation, BlendEquationMode>()
+        {
+            {BlendOperation.Add, BlendEquationMode.FuncAdd},
+            {BlendOperation.Subtract, BlendEquationMode.FuncSubtract},
+            {BlendOperation.ReverseSubtract, BlendEquationMode.FuncReverseSubtract},
+            {BlendOperation.Max, BlendEquationMode.Max},
+            {BlendOperation.Min, BlendEquationMode.Min}
+        };
+
 #endif
 
-        #region Cleanup
+            #region Cleanup
 
         private void Destroy()
         {

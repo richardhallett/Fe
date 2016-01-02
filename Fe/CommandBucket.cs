@@ -57,6 +57,16 @@ namespace Fe
             
             // Store the command
             var command = this._nextCommands[currentCommand];
+            
+            // Reset the data in a command
+            command.ShaderProgram = null;
+            command.BlendState = null;
+            command.VertexBuffer = null;
+            command.IndexBuffer = null;
+            command.SharedUniforms = null;
+            command.Transform = null; 
+            
+            // View is the one the bucket belongs to
             command.ViewId = ViewId;
             
             return command;

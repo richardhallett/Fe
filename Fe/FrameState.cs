@@ -15,6 +15,8 @@ namespace Fe
 
         public UniformBuffer SharedUniforms { get; set; }
 
+        public BlendState BlendState { get; set; }
+
         public byte? ViewId { get; set; }
     }
 }

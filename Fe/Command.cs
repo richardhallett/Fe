@@ -19,6 +19,11 @@ namespace Fe
             this.ShaderProgram = shaderProgram;
         }
 
+        public void SetBlendState(BlendState blendState)
+        {
+            BlendState = blendState;
+        }
+
         public void SetVertexBuffer(VertexBufferBase vertexBuffer) 
         {
             this.VertexBuffer = vertexBuffer;
@@ -44,13 +49,15 @@ namespace Fe
 
         internal ShaderProgram ShaderProgram;
 
+        internal BlendState BlendState;
+
         internal VertexBufferBase VertexBuffer;
 
         internal IndexBuffer IndexBuffer;
 
         internal UniformBuffer SharedUniforms;
 
-        internal Nml.Matrix4x4 Transform;
+        internal Nml.Matrix4x4? Transform;
 
         private byte viewId;
     }
