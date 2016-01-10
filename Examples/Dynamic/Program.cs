@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace StressTest1
+namespace Fe.Examples.Dynamic
 {
     class Program
     {

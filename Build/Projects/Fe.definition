@@ -29,6 +29,8 @@
     <Compile Include="Colour4.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandBucket.cs" />
+    <Compile Include="DepthFunc.cs" />
+    <Compile Include="DepthState.cs" />
     <Compile Include="FrameState.cs" />
     <Compile Include="GLBuffer.cs" />
     <Compile Include="GLShaderProgram.cs" />

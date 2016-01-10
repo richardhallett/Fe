@@ -24,6 +24,11 @@ namespace Fe
             BlendState = blendState;
         }
 
+        public void SetDepthState(DepthState depthState)
+        {
+            DepthState = depthState;
+        }
+
         public void SetVertexBuffer(VertexBufferBase vertexBuffer) 
         {
             this.VertexBuffer = vertexBuffer;
@@ -50,6 +55,8 @@ namespace Fe
         internal ShaderProgram ShaderProgram;
 
         internal BlendState BlendState;
+
+        internal DepthState DepthState;
 
         internal VertexBufferBase VertexBuffer;
 

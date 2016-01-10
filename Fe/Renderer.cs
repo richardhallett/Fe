@@ -38,6 +38,7 @@ namespace Fe
             _currentState = new FrameState();
 
             _defaultBlendState = new BlendState();
+            _defaultDepthState = new DepthState();
         }
 
         /// <summary>
@@ -81,8 +82,7 @@ namespace Fe
         {
 #if RENDERER_GL
             this._context.MakeCurrent(this._windowInfo);            
-
-            GL.Enable(OpenTK.Graphics.OpenGL.EnableCap.DepthTest);
+           
             GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
             GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
             //GL.Disable(EnableCap.CullFace);
@@ -380,6 +380,42 @@ namespace Fe
                     }
                 }
 
+                // Set default depth state for anything that doesn't have one explicitly set.
+                if (command.DepthState == null)
+                {
+                    command.DepthState = _defaultDepthState;
+                }
+
+                // Is the depth state different if so we need to set it.
+                if (command.DepthState != this._currentState.DepthState)
+                {
+                    this._currentState.DepthState = command.DepthState;
+                    var ds = command.DepthState;
+
+                    // Depth Test
+                    if (ds.EnableDepthTest)
+                    {
+                        GL.Enable(EnableCap.DepthTest);
+                        var df = glDepthFuncMapping[ds.DepthFunc];
+
+                        GL.DepthFunc(df);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.DepthTest);
+                    }
+
+                    // Depth write
+                    if (ds.EnableDepthWrite)
+                    {
+                        GL.DepthMask(true);
+                    }
+                    else
+                    {
+                        GL.DepthMask(false);
+                    }
+                }
+
                 bool sharedUniformsChanged = false;
                 // Different uniform to current state then we'll need to rebind whatever the new ones are.
                 if (command.SharedUniforms != this._currentState.SharedUniforms)
@@ -598,6 +634,7 @@ namespace Fe
         private Dictionary<byte, View> _views; // Stored views
 
         private BlendState _defaultBlendState; // Default blend state when none has been set
+        private DepthState _defaultDepthState; // Default depth state when none has been set
 
         // Holds current state of the frame
         internal FrameState _currentState;
@@ -682,9 +719,21 @@ namespace Fe
             {BlendOperation.Min, BlendEquationMode.Min}
         };
 
+        internal static Dictionary<DepthFunc, DepthFunction> glDepthFuncMapping = new Dictionary<DepthFunc, DepthFunction>()
+        {
+            {DepthFunc.Never, DepthFunction.Never},
+            {DepthFunc.Less, DepthFunction.Less},
+            {DepthFunc.Equal, DepthFunction.Equal},
+            {DepthFunc.LessEqual, DepthFunction.Lequal},
+            {DepthFunc.Greater, DepthFunction.Greater},
+            {DepthFunc.NotEqual, DepthFunction.Notequal},
+            {DepthFunc.GreaterEqual, DepthFunction.Gequal},
+            {DepthFunc.Always, DepthFunction.Always}
+        };
+
 #endif
 
-            #region Cleanup
+        #region Cleanup
 
         private void Destroy()
         {

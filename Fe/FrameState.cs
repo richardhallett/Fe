@@ -17,6 +17,8 @@ namespace Fe
 
         public BlendState BlendState { get; set; }
 
+        public DepthState DepthState { get; set; }
+
         public byte? ViewId { get; set; }
     }
 }

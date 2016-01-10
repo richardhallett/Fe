@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace StressTest1
+namespace Fe.Examples.TranslucencySort
 {
     class Program
     {
@@ -38,7 +38,7 @@ namespace StressTest1
         };
 
         static void Main(string[] args)
-        {
+        {            
             var form = new Fe.Forms.GraphicsForm();
 
             // Create the renderer
