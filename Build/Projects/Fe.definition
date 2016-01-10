@@ -23,6 +23,9 @@
     <Reference Include="Fe.Depends" />
   </References>
   <Files>
+    <Compile Include="BlendFactor.cs" />
+    <Compile Include="BlendOperation.cs" />
+    <Compile Include="BlendState.cs" />
     <Compile Include="Colour4.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandBucket.cs" />
