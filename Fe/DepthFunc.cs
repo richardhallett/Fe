@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Fe
+﻿namespace Fe
 {
     /// <summary>
     /// The function to use to compare each incoming pixel depth value with the depth value present in the depth buffer.
