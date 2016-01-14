@@ -134,7 +134,7 @@ namespace Fe
             if (obj.GetType() != GetType())
                 return false;
 
-            return Equals((Colour4)obj);
+            return Equals((DepthState)obj);
         }
 
         /// <summary>
