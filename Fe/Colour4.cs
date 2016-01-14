@@ -9,7 +9,7 @@ namespace Fe
     /// <summary>
     /// A four component (RGBA) colour, each component is a float in range 0.0f - 1.0f
     /// </summary>
-    public struct Colour4
+    public struct Colour4 : IEquatable<Colour4>
     {
         /// <summary>
         /// Construct a new instance of Colour4 from packed integer.
@@ -62,5 +62,80 @@ namespace Fe
         private float _green;
         private float _blue;
         private float _alpha;
+
+        /// <summary>
+        /// Implements the operator ==.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator ==(Colour4 a, Colour4 b)
+        {
+            return a.Equals(b);
+        }
+
+        /// <summary>
+        /// Implements the operator !=.
+        /// </summary>
+        /// <param name="a">a.</param>
+        /// <param name="b">The b.</param>
+        /// <returns>
+        /// The result of the operator.
+        /// </returns>
+        public static bool operator !=(Colour4 a, Colour4 b)
+        {
+            return a.Equals(b);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        /// </returns>
+        public override bool Equals(System.Object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (obj.GetType() != GetType())
+                return false;
+
+            return Equals((Colour4)obj);
+        }
+
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <param name="other">An object to compare with this object.</param>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.
+        /// </returns>
+        public bool Equals(Colour4 other)
+        {
+            if (_red == other._red &&
+                _green == other._green &&
+                _blue == other.Blue &&
+                _alpha == other.Alpha)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns a hash code.
+        /// </summary>
+        /// <returns>
+        /// A hash code for this instance.
+        /// </returns>
+        public override int GetHashCode()
+        {
+            return _red.GetHashCode() ^ _green.GetHashCode() ^ _blue.GetHashCode() ^ _alpha.GetHashCode();
+        }
     }
 }
