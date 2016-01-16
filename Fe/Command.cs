@@ -29,6 +29,11 @@ namespace Fe
             DepthState = depthState;
         }
 
+        public void SetRasteriserState(RasteriserState rasteriserState)
+        {
+            RasteriserState = rasteriserState;
+        }
+
         public void SetVertexBuffer(VertexBufferBase vertexBuffer) 
         {
             this.VertexBuffer = vertexBuffer;
@@ -57,6 +62,8 @@ namespace Fe
         internal BlendState BlendState;
 
         internal DepthState DepthState;
+
+        internal RasteriserState RasteriserState;
 
         internal VertexBufferBase VertexBuffer;
 

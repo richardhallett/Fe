@@ -19,6 +19,8 @@ namespace Fe
 
         public DepthState DepthState { get; set; }
 
+        public RasteriserState RasteriserState { get; set; }
+
         public byte? ViewId { get; set; }
     }
 }

@@ -39,6 +39,7 @@ namespace Fe
 
             _defaultBlendState = new BlendState();
             _defaultDepthState = new DepthState();
+            _defaultRasteriserState = new RasteriserState();
         }
 
         /// <summary>
@@ -82,11 +83,7 @@ namespace Fe
         {
 #if RENDERER_GL
             this._context.MakeCurrent(this._windowInfo);            
-           
-            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
-            GL.FrontFace(OpenTK.Graphics.OpenGL.FrontFaceDirection.Ccw);
-            //GL.Disable(EnableCap.CullFace);
-
+                       
             // Create a dummy VAO as it's required for Core profile
             var vaos = new int[1];
             GL.GenVertexArrays(1, vaos);
@@ -416,6 +413,45 @@ namespace Fe
                     }
                 }
 
+                // Set default rasteriser state for anything that doesn't have one explicitly set.
+                if (command.RasteriserState == null)
+                {
+                    command.RasteriserState = _defaultRasteriserState;
+                }
+
+                // Is the rasteriser state different if so we need to set it.
+                if (command.RasteriserState != this._currentState.RasteriserState)
+                {
+                    this._currentState.RasteriserState = command.RasteriserState;
+                    var rs = command.RasteriserState;
+
+                    // Cull mode
+                    if (rs.CullMode == CullMode.Clockwise)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
+                    }
+                    else if (rs.CullMode == CullMode.CounterClockwise)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.CullFace);
+                    }
+
+                    // Multisampling
+                    if (rs.EnableMultisampling)
+                    {
+                        GL.Enable(EnableCap.Multisample);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.Multisample);
+                    }
+                }
+
                 bool sharedUniformsChanged = false;
                 // Different uniform to current state then we'll need to rebind whatever the new ones are.
                 if (command.SharedUniforms != this._currentState.SharedUniforms)
@@ -635,6 +671,7 @@ namespace Fe
 
         private BlendState _defaultBlendState; // Default blend state when none has been set
         private DepthState _defaultDepthState; // Default depth state when none has been set
+        private RasteriserState _defaultRasteriserState; // Default rasterisation state when none has been set
 
         // Holds current state of the frame
         internal FrameState _currentState;
