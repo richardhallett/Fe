@@ -366,10 +366,10 @@ namespace Fe
 
                         GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
 
-                        if(bs.BlendConstant != null)
+                        if(bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
                         {
-                            GL.BlendColor(bs.BlendConstant.Value.Red, bs.BlendConstant.Value.Green,
-                                          bs.BlendConstant.Value.Blue, bs.BlendConstant.Value.Alpha);
+                            GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
+                                          bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
                         }
                     } else
                     {

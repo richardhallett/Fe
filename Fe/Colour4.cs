@@ -17,10 +17,7 @@ namespace Fe
         /// <param name="rgba">A packed integer for all four components in e.g. 0xFFFFFFFF</param>
         public Colour4(uint rgba)
         {
-            this._red = (rgba >> 24 & 0xFF) / 255.0f;
-            this._green = (rgba >> 16 & 0xFF) / 255.0f;
-            this._blue = (rgba >> 8 & 0xFF) / 255.0f;
-            this._alpha = (rgba & 0xFF) / 255.0f;
+            this._rgba = rgba;
         }
 
         /// <summary>
@@ -32,36 +29,35 @@ namespace Fe
         /// <param name="alpha">Alpha component (optional)</param>
         public Colour4(float red, float green, float blue, float alpha = 1.0f)
         {
-            this._red = red;
-            this._green = green;
-            this._blue = blue;
-            this._alpha = alpha;
+            uint colour = 0;
+            colour |= ((uint)(red * 255) & 255) << 24;
+            colour |= ((uint)(green * 255) & 255) << 16;
+            colour |= ((uint)(blue * 255) & 255) << 8;
+            colour |= ((uint)(alpha * 255) & 255);
+            this._rgba = colour;
         }        
 
         /// <summary>
         /// Red component of colour.
         /// </summary>
-        public float Red { get { return this._red; } }
+        public float Red { get { return (_rgba >> 24 & 0xFF) / 255.0f; } }
 
         /// <summary>
         /// Green component of colour.
         /// </summary>
-        public float Green { get { return this._green; } }
+        public float Green { get { return (_rgba >> 16 & 0xFF) / 255.0f; } }
 
         /// <summary>
         /// Blue component of colour.
         /// </summary>
-        public float Blue { get { return this._blue; } }
+        public float Blue { get { return (_rgba >> 8 & 0xFF) / 255.0f; } }
 
         /// <summary>
         /// Alpha component of colour.
         /// </summary>
-        public float Alpha { get { return this._alpha; } }
-
-        private float _red;
-        private float _green;
-        private float _blue;
-        private float _alpha;
+        public float Alpha { get { return (_rgba & 0xFF) / 255.0f; } }
+        
+        private uint _rgba; 
 
         /// <summary>
         /// Implements the operator ==.
@@ -116,10 +112,7 @@ namespace Fe
         /// </returns>
         public bool Equals(Colour4 other)
         {
-            if (_red == other._red &&
-                _green == other._green &&
-                _blue == other.Blue &&
-                _alpha == other.Alpha)
+            if (_rgba == other._rgba)
             {
                 return true;
             }
@@ -135,7 +128,7 @@ namespace Fe
         /// </returns>
         public override int GetHashCode()
         {
-            return _red.GetHashCode() ^ _green.GetHashCode() ^ _blue.GetHashCode() ^ _alpha.GetHashCode();
+            return _rgba.GetHashCode();
         }
     }
 }

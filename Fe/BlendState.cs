@@ -26,7 +26,7 @@ namespace Fe
             BlendFactor sourceBlendAlpha = BlendFactor.One,
             BlendFactor destinationBlendAlpha = BlendFactor.Zero,
             BlendOperation alphaOperation = BlendOperation.Add,
-            Colour4? blendConstant = null)
+            Colour4 blendConstant = new Colour4())
         {
             EnableBlending = enableBlending;
             SourceBlendColour = sourceBlendColour;
@@ -85,7 +85,7 @@ namespace Fe
         /// <value>
         /// The blend constant.
         /// </value>
-        public Colour4? BlendConstant { get; set; }
+        public Colour4 BlendConstant { get; set; }
 
         /// <summary>
         /// Implements the operator ==.
@@ -156,8 +156,7 @@ namespace Fe
                 ColourOperation == other.ColourOperation &&
                 SourceBlendAlpha == other.SourceBlendAlpha &&
                 DestinationBlendAlpha == other.DestinationBlendAlpha &&
-                AlphaOperation == other.AlphaOperation &&
-                BlendConstant.Equals(other.BlendConstant))
+                AlphaOperation == other.AlphaOperation)
             {
                 return true;
             }
