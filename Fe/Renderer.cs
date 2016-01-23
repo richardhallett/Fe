@@ -681,9 +681,9 @@ namespace Fe
         internal ResourceCache<GLBuffer> _glVBCache;
         internal ResourceCache<GLBuffer> _glIBCache;
         private IGraphicsContext _context;        
-        internal int predefinedModelUniformLocation;
-        internal int predefinedViewUniformLocation;
-        internal int predefinedProjectionUniformLocation;
+        internal int predefinedModelUniformLocation = -1;
+        internal int predefinedViewUniformLocation = -1;
+        internal int predefinedProjectionUniformLocation = -1;
 
         /// <summary>
         /// The gl attribute mapping
