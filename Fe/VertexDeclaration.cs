@@ -38,8 +38,9 @@ namespace Fe
         }
 
         /// <summary>
-        /// Gets or sets the attributes.
+        /// Gets or sets the attributes as defined in the shader
         /// </summary>
+        /// <remarks>The vertex attributes must be laid out in the same order(i.e. same index) as they are in the shader.</remarks>
         /// <value>
         /// The attributes.
         /// </value>
