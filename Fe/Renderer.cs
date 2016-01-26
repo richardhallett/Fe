@@ -609,10 +609,16 @@ namespace Fe
                     }
                 }
 
+                var primType = glPrimitiveTypeMapping[command.PrimitiveType];
+
                 // Lets draw!
                 if (ib != null)
                 {
-                    GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, ib.Size, OpenTK.Graphics.OpenGL.DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    GL.DrawElements(primType, ib.Size, OpenTK.Graphics.OpenGL.DrawElementsType.UnsignedInt, IntPtr.Zero);
+                }
+                else
+                {
+                    GL.DrawArrays(primType, 0, vb.Size);
                 }
 #endif
 
@@ -766,6 +772,15 @@ namespace Fe
             {DepthFunc.NotEqual, DepthFunction.Notequal},
             {DepthFunc.GreaterEqual, DepthFunction.Gequal},
             {DepthFunc.Always, DepthFunction.Always}
+        };
+
+        internal static Dictionary<PrimitiveType, OpenTK.Graphics.OpenGL.PrimitiveType> glPrimitiveTypeMapping = new Dictionary<PrimitiveType, OpenTK.Graphics.OpenGL.PrimitiveType>()
+        {
+            {PrimitiveType.Triangles, OpenTK.Graphics.OpenGL.PrimitiveType.Triangles},
+            {PrimitiveType.TriangleStrip, OpenTK.Graphics.OpenGL.PrimitiveType.TriangleStrip},
+            {PrimitiveType.Lines, OpenTK.Graphics.OpenGL.PrimitiveType.Lines},
+            {PrimitiveType.LineStrip, OpenTK.Graphics.OpenGL.PrimitiveType.LineStrip},
+            {PrimitiveType.Points, OpenTK.Graphics.OpenGL.PrimitiveType.Points}
         };
 
 #endif

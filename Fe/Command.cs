@@ -55,6 +55,11 @@ namespace Fe
             this.SharedUniforms = sharedUniforms;
         }
 
+        public void SetPrimitiveType(PrimitiveType primitiveType)
+        {
+            this.PrimitiveType = primitiveType;
+        }
+
         public byte ViewId { get { return viewId; } set { viewId = value; } }
 
         internal ShaderProgram ShaderProgram;
@@ -70,6 +75,8 @@ namespace Fe
         internal IndexBuffer IndexBuffer;
 
         internal UniformBuffer SharedUniforms;
+
+        internal PrimitiveType PrimitiveType;
 
         internal Nml.Matrix4x4? Transform;
 
