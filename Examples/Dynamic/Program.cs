@@ -102,6 +102,9 @@ namespace Fe.Examples.Dynamic
 
             Fe.UniformBuffer sharedUniforms = new Fe.UniformBuffer();
 
+            // Turn off face culling.
+            var rs = new RasteriserState(CullMode.None);
+
             Stopwatch frameTimer = Stopwatch.StartNew();
             double frameTime = 0;
             float rotTime = 0.0f;
@@ -140,6 +143,7 @@ namespace Fe.Examples.Dynamic
                 cubeCommand.SetVertexBuffer(vb);
                 cubeCommand.SetIndexBuffer(ib);
                 cubeCommand.SetUniformBuffer(sharedUniforms);
+                cubeCommand.SetRasteriserState(rs);
 
                 // Generate new vertice positions
                 for (i = 0; i < vertices.Length; i++)
