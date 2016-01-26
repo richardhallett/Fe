@@ -61,10 +61,12 @@ namespace Fe
             // Reset the data in a command
             command.ShaderProgram = null;
             command.BlendState = null;
+            command.RasteriserState = null;
+            command.DepthState = null;
             command.VertexBuffer = null;
             command.IndexBuffer = null;
             command.SharedUniforms = null;
-            command.Transform = null; 
+            command.Transform = null;
             
             // View is the one the bucket belongs to
             command.ViewId = ViewId;
