@@ -21,6 +21,12 @@ namespace Fe
 
         public RasteriserState RasteriserState { get; set; }
 
+        public VertexBufferBase VertexBuffer { get; set; }
+
+        public IndexBuffer IndexBuffer { get; set; }
+
+        public PrimitiveType PrimitiveType { get; set; }
+
         public byte? ViewId { get; set; }
     }
 }

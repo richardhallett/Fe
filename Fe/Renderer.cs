@@ -288,55 +288,7 @@ namespace Fe
                 else
                 {
                     program = this._glProgramCache[command.ShaderProgram.ResourceIndex];
-                }
-
-                // Build Vertex Buffer as appropriate
-                GLBuffer vb = null;
-                if (command.VertexBuffer != null)
-                {
-                    // Have we already loaded and cached a vertex buffer
-                    if (!command.VertexBuffer.Created)
-                    {
-                        vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
-                        vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
-                        this._glVBCache.Add(command.VertexBuffer, vb);
-                    }
-                    else
-                    {
-                        vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
-                    }
-
-                    // Do we need to update the vertex buffer data
-                    if (command.VertexBuffer.Changed)
-                    {
-                        vb.Update(command.VertexBuffer.Data, 0);
-                        command.VertexBuffer.Changed = false;
-                    }
-                }
-
-                // Build Index Buffer as appropriate
-                GLBuffer ib = null;
-                if (command.IndexBuffer != null)
-                {
-                    // Have we already loaded and cached a vertex buffer
-                    if (!command.IndexBuffer.Created)
-                    {
-                        ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
-                        ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
-                        this._glIBCache.Add(command.IndexBuffer, ib);
-                    }
-                    else
-                    {
-                        ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
-                    }
-
-                    // Do we need to update the index buffer data
-                    if (command.IndexBuffer.Changed)
-                    {
-                        ib.Update(command.IndexBuffer.Data, 0);
-                        command.IndexBuffer.Changed = false;
-                    }
-                }
+                }              
 
                 // Set default blend state for anything that doesn't have one explicitly set.
                 if(command.BlendState == null)
@@ -454,18 +406,97 @@ namespace Fe
 
                 bool sharedUniformsChanged = false;
                 // Different uniform to current state then we'll need to rebind whatever the new ones are.
-                if (command.SharedUniforms != this._currentState.SharedUniforms)
+                if (command.SharedUniforms != null && command.SharedUniforms != this._currentState.SharedUniforms)
                 {
                     this._currentState.SharedUniforms = command.SharedUniforms;
                     sharedUniformsChanged = true;
                 }
 
                 // Do we need to change the state for the current active program.
+                bool programChanged = false;
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
                 {
                     this._currentState.ShaderProgram = command.ShaderProgram;
 
-                    GL.UseProgram(program.ProgramRef);
+                    GL.UseProgram(program.ProgramRef);                  
+
+                    // Predefined locations
+                    int uniformLocation;
+                    // Model transform
+                    if (program.Uniforms.TryGetValue("_model", out uniformLocation))
+                    {
+                        this.predefinedModelUniformLocation = uniformLocation;
+                    }
+
+                    // View transform
+                    if (program.Uniforms.TryGetValue("_view", out uniformLocation))
+                    {
+                        this.predefinedViewUniformLocation = uniformLocation;                        
+                    }
+
+                    // Projection transform
+                    if (program.Uniforms.TryGetValue("_projection", out uniformLocation))
+                    {
+                        this.predefinedProjectionUniformLocation = uniformLocation;                        
+                    }
+
+                    // Program changed, so we'll need to change the uniforms.
+                    sharedUniformsChanged = true;
+                    programChanged = true;
+                }
+
+                // Build Vertex Buffer as appropriate
+                GLBuffer vb = null;
+                if (command.VertexBuffer != null)
+                {
+                    // Have we already loaded and cached a vertex buffer
+                    if (!command.VertexBuffer.Created)
+                    {
+                        vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
+                        vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
+                        this._glVBCache.Add(command.VertexBuffer, vb);
+                    }
+                    else
+                    {
+                        vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
+                    }
+
+                    // Do we need to update the vertex buffer data
+                    if (command.VertexBuffer.Changed)
+                    {
+                        vb.Update(command.VertexBuffer.Data, 0);
+                        command.VertexBuffer.Changed = false;
+                    }
+                }
+
+                // Build Index Buffer as appropriate
+                GLBuffer ib = null;
+                if (command.IndexBuffer != null)
+                {
+                    // Have we already loaded and cached a vertex buffer
+                    if (!command.IndexBuffer.Created)
+                    {
+                        ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
+                        ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
+                        this._glIBCache.Add(command.IndexBuffer, ib);
+                    }
+                    else
+                    {
+                        ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
+                    }
+
+                    // Do we need to update the index buffer data
+                    if (command.IndexBuffer.Changed)
+                    {
+                        ib.Update(command.IndexBuffer.Data, 0);
+                        command.IndexBuffer.Changed = false;
+                    }
+                }
+
+                if (programChanged || command.VertexBuffer != _currentState.VertexBuffer || command.IndexBuffer != _currentState.IndexBuffer)
+                {
+                    _currentState.VertexBuffer = command.VertexBuffer;
+                    _currentState.IndexBuffer = command.IndexBuffer;
 
                     // Bind the vertex buffer
                     if (vb != null)
@@ -493,33 +524,10 @@ namespace Fe
                     {
                         GL.BindBuffer(BufferTarget.ElementArrayBuffer, ib.BufferId);
                     }
-
-                    // Predefined locations
-                    int uniformLocation;
-                    // Model transform
-                    if (program.Uniforms.TryGetValue("_model", out uniformLocation))
-                    {
-                        this.predefinedModelUniformLocation = uniformLocation;
-                    }
-
-                    // View transform
-                    if (program.Uniforms.TryGetValue("_view", out uniformLocation))
-                    {
-                        this.predefinedViewUniformLocation = uniformLocation;                        
-                    }
-
-                    // Projection transform
-                    if (program.Uniforms.TryGetValue("_projection", out uniformLocation))
-                    {
-                        this.predefinedProjectionUniformLocation = uniformLocation;                        
-                    }
-
-                    // Program changed, so we'll need to change the uniforms.
-                    sharedUniformsChanged = true;
                 }
 
                 // For view changes we need to set view/projection matrices again
-                if(viewChanged)
+                if (viewChanged)
                 {
                     // View transform
                     if (predefinedViewUniformLocation != -1)
@@ -609,7 +617,13 @@ namespace Fe
                     }
                 }
 
-                var primType = glPrimitiveTypeMapping[command.PrimitiveType];
+                // Work out what primitive topology we should be using
+                OpenTK.Graphics.OpenGL.PrimitiveType primType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
+                if (command.PrimitiveType != _currentState.PrimitiveType)
+                {
+                    _currentState.PrimitiveType = command.PrimitiveType;
+                    primType = glPrimitiveTypeMapping[command.PrimitiveType];
+                }
 
                 // Lets draw!
                 if (ib != null)
