@@ -109,7 +109,7 @@ namespace Fe.Examples.StressTest1
             var ib = new Fe.IndexBuffer(indexPositions);
             
             // Specify number of cube dimensions
-            int dim = 8;
+            int dim = 16;
             int totalCubeCount = dim * dim * dim;
             
             // Threshold for the timings
