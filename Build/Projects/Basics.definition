@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Name="Basics" Path="Examples/Basics" Type="Console">
+  <Properties>
+    <FrameworkVersions>
+      <Platform Name="Windows">
+        <Version>4.5</Version>
+      </Platform>
+      <Platform Name="Linux">
+        <Version>4.5</Version>
+      </Platform>
+    </FrameworkVersions>
+    <CustomDefinitions>
+      <Platform Name="Linux">PLATFORM_LINUX</Platform>
+      <Platform Name="Windows">PLATFORM_WINDOWS</Platform>
+    </CustomDefinitions>
+    <ForceArchitecture>x64</ForceArchitecture>
+  </Properties>
+  <References>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Fe" />
+    <Reference Include="Fe.Forms" />
+    <Reference Include="Fe.Depends" />
+    <Reference Include="Fe.Extra" />
+    <Reference Include="System.Windows.Forms" />
+  </References>
+  <Files>
+    <Compile Include="ExampleData.cs" />
+    <Compile Include="IExample.cs" />
+    <Compile Include="PosColorVertex.cs" />
+    <Compile Include="PrimitivesExample.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TranslucencySort.cs" />
+    <None Include="default.frag">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="default.vert">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </Files>
+</Project>
