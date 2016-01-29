@@ -1,3 +1,3 @@
 [submodule "Depends/nml"]
 	path = Depends/nml
-	url = https://bitbucket.org/Gachuk/nml.git
+	url = https://github.com/richardhallett/nml.git
