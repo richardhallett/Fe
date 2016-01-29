@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ModuleInfo xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Module>
   <Name>Fe</Name>
   <DefaultAction>resync</DefaultAction>
-  <SupportedPlatforms>Linux, Windows</SupportedPlatforms>
-  <DefaultWindowsPlatforms>Linux, Windows</DefaultWindowsPlatforms>
   <DefaultLinuxPlatforms>Linux</DefaultLinuxPlatforms>
-  <DisableSynchronisation xsi:nil="true" />
-  <ModuleAssemblies />
-</ModuleInfo>
+  <DefaultWindowsPlatforms>Linux, Windows</DefaultWindowsPlatforms>
+  <SupportedPlatforms>Linux, Windows</SupportedPlatforms>
+  <GenerateNuGetRepositories>true</GenerateNuGetRepositories>
+</Module>
