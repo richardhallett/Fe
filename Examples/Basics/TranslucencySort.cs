@@ -77,7 +77,7 @@ namespace Fe.Examples.Basics
             opaqueCube.SetShaderProgram(exampleData.DefaultProgram);
             opaqueCube.SetVertexBuffer(_vb);
             opaqueCube.SetIndexBuffer(_ib);
-         //   opaqueCube.SetUniformBuffer(_opaque);
+            opaqueCube.SetUniformBuffer(_opaque);
 
             opaqueCube.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -0.4f)));
         }

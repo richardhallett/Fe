@@ -66,7 +66,7 @@ namespace Fe.Examples.Basics
 
             
             // Default example to start with
-            runningExample = translucencySortExample;
+            runningExample = primitivesExample;
 
             // Key handling to switch examples
             form.KeyDown += (object o, KeyEventArgs e) =>
