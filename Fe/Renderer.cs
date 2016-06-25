@@ -61,7 +61,7 @@ namespace Fe
             {
                 // Create a GL context.
                 this._windowInfo = OpenTK.Platform.Utilities.CreateWindowsWindowInfo(_windowHandle);
-                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, this._windowInfo, 3, 2, GraphicsContextFlags.Default);
+                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, this._windowInfo, 4, 1, GraphicsContextFlags.Default);
                 this._context.LoadAll();
                 this._context.MakeCurrent(null);                
             }
@@ -658,10 +658,10 @@ namespace Fe
 
             if (major >= 3)
             {
-                // Nothing lower than GL 3.2
-                if (major == 3 && minor < 2)
+                // Nothing lower than GL 4.1
+                if (major == 4 && minor < 1)
                 {
-                    throw new Exception("OpenGL context version must be higher than 3.2");
+                    throw new Exception("OpenGL context version must be higher than 4.1");
                 }
             }
 #endif
