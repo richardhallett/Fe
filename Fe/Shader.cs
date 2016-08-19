@@ -9,7 +9,7 @@ namespace Fe
     /// <summary>
     /// Describes a shader that can be compiled as appropriate by the respective platform.
     /// </summary>
-    public class Shader
+    public class Shader : GraphicsResource
     {
         /// <summary>
         /// Construct a new shader.

@@ -13,6 +13,10 @@ namespace Fe
     {
         public ShaderProgram ShaderProgram { get; set; }
 
+        public Shader VertexShader { get; set; }
+
+        public Shader FragmentShader { get; set; }
+
         public UniformBuffer SharedUniforms { get; set; }
 
         public BlendState BlendState { get; set; }

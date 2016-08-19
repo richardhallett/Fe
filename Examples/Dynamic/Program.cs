@@ -139,7 +139,8 @@ namespace Fe.Examples.Dynamic
 
                 var cubeCommand = geometryBucket.AddCommand(1);
 
-                cubeCommand.SetShaderProgram(shaderProgram);
+                cubeCommand.SetVertexShader(vertexShader);
+                cubeCommand.SetFragmentShader(fragmentShader);
                 cubeCommand.SetVertexBuffer(vb);
                 cubeCommand.SetIndexBuffer(ib);
                 cubeCommand.SetUniformBuffer(sharedUniforms);

@@ -59,7 +59,10 @@ namespace Fe
             var command = this._nextCommands[currentCommand];
             
             // Reset the data in a command
+            // TODO: This is really icky to maintain, need to reconsider a better way, maybe moving it to the Command object itself.
             command.ShaderProgram = null;
+            command.VertexShader = null;
+            command.FragmentShader = null;
             command.BlendState = null;
             command.RasteriserState = null;
             command.DepthState = null;

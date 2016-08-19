@@ -55,14 +55,14 @@ namespace Fe.Examples.StressTest1
 
             // Create geometry layer command bucker
             var geometryBucket = renderer.AddCommandBucket(UInt16.MaxValue);
-            
+
             // Create the shaders
             Fe.Shader vertexShader, fragmentShader;
-            switch(renderer.GetRendererType()) 
-            {                
-                case Fe.RendererType.OpenGL:                
-                    using (StreamReader fragReader = new StreamReader("stresstest.frag"))
-                    using (StreamReader vertReader = new StreamReader("stresstest.vert"))
+            switch (renderer.GetRendererType())
+            {
+                case Fe.RendererType.OpenGL:
+                    using (StreamReader fragReader = new StreamReader("splitscreen.frag"))
+                    using (StreamReader vertReader = new StreamReader("splitscreen.vert"))
                     {
                         vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
                         fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
@@ -72,8 +72,6 @@ namespace Fe.Examples.StressTest1
                     throw new Exception("Unknown backend renderer type");
             }
 
-            // Link shaders into a program for binding.
-            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
             {
@@ -192,7 +190,8 @@ namespace Fe.Examples.StressTest1
                         {
                             var cubeCommand = geometryBucket.AddCommand(1);
 
-                            cubeCommand.SetShaderProgram(shaderProgram);
+                            cubeCommand.SetVertexShader(vertexShader);
+                            cubeCommand.SetFragmentShader(fragmentShader);
                             cubeCommand.SetVertexBuffer(vb);
                             cubeCommand.SetIndexBuffer(ib);
                          

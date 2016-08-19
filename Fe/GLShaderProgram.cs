@@ -15,25 +15,27 @@ namespace Fe
         /// <summary>
         /// Initializes a new instance of the <see cref="GLShaderProgram"/> class.
         /// </summary>
-        /// <param name="program">The program.</param>
-        internal GLShaderProgram(ShaderProgram program)
+        /// <param name="shaders">The shaders.</param>
+        internal GLShaderProgram(IReadOnlyList<GLShader> shaders)
         {
-            // Build the GL program
-            List<int> shaders = new List<int>();
-            foreach(var shader in program.Shaders)
+            int program = OpenTK.Graphics.OpenGL.GL.CreateProgram();
+
+            foreach (GLShader shader in shaders)
             {
-                switch(shader.Type) 
-                {
-                    case ShaderType.Vertex:
-                        shaders.Add(this.BuildShader(OpenTK.Graphics.OpenGL.ShaderType.VertexShader, shader.Data));
-                        break;
-                    case ShaderType.Fragment:
-                        shaders.Add(this.BuildShader(OpenTK.Graphics.OpenGL.ShaderType.FragmentShader, shader.Data));
-                        break;
-                }                
+                OpenTK.Graphics.OpenGL.GL.AttachShader(program, shader.ShaderRef);
             }
 
-            this.ProgramRef = this.LinkProgram(shaders);
+            OpenTK.Graphics.OpenGL.GL.LinkProgram(program);
+
+            string infoLog = OpenTK.Graphics.OpenGL.GL.GetProgramInfoLog(program);
+            Debug.WriteLine(infoLog);
+
+            foreach (GLShader shader in shaders)
+            {
+                OpenTK.Graphics.OpenGL.GL.DetachShader(program, shader.ShaderRef);
+            }
+
+            this.ProgramRef = program;
 
             this.Uniforms = new Dictionary<string, int>();
 
@@ -70,32 +72,7 @@ namespace Fe
         /// <value>
         /// Opengl uniforms.
         /// </value>
-        public Dictionary<string, int> Uniforms { get; set; }
-
-        /// <summary>
-        /// Build a shader
-        /// </summary>
-        /// <param name="type">The gl type of shader</param>
-        /// <param name="shader_source">The shader_source.</param>
-        /// <returns>The reference to the shader</returns>
-        private int BuildShader(OpenTK.Graphics.OpenGL.ShaderType type, string shader_source)
-        {
-            int shader = OpenTK.Graphics.OpenGL.GL.CreateShader(type);
-
-            unsafe
-            {
-                int length = shader_source.Length;
-                OpenTK.Graphics.OpenGL.GL.ShaderSource(shader, 1, new string[] { shader_source }, &length);
-
-                OpenTK.Graphics.OpenGL.GL.CompileShader(shader);
-
-                string infoLog = OpenTK.Graphics.OpenGL.GL.GetShaderInfoLog(shader);
-
-                Debug.WriteLine(infoLog);
-            }
-
-            return shader;
-        }
+        public Dictionary<string, int> Uniforms { get; set; }       
 
         /// <summary>
         /// Links a program together.
@@ -161,7 +138,6 @@ namespace Fe
 
                 if (this.ProgramRef != 0)
                 {
-                    OpenTK.Graphics.OpenGL.GL.UseProgram(0);
                     OpenTK.Graphics.OpenGL.GL.DeleteProgram(this.ProgramRef);
                 }
                 

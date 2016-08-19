@@ -32,6 +32,7 @@ namespace Fe
 
 #if RENDERER_GL
             _glProgramCache = new ResourceCache<GLShaderProgram>(MaxShaderPrograms);
+            _glShaderCache = new ResourceCache<GLShader>(MaxShaderPrograms);
             _glVBCache = new ResourceCache<GLBuffer>(MaxVertexBuffers);
             _glIBCache = new ResourceCache<GLBuffer>(MaxIndexBuffers);
 #endif
@@ -215,6 +216,7 @@ namespace Fe
         {
 #if RENDERER_GL
             this._glProgramCache.Clean();
+            this._glShaderCache.Clean();
             this._glIBCache.Clean();
             this._glVBCache.Clean();
 #endif
@@ -270,11 +272,51 @@ namespace Fe
                     ResetViewPort(view);
                 }
 
-                if (command.ShaderProgram == null)
+                // TODO: Redo this, but this time round we want to check for default shaders.
+                //if (command.ShaderProgram == null)
+                //{
+                //    //TODO: Log the fact it skipped a command due to no shader program
+                //    continue;
+                //}
+
+                GLShader vertexShader;
+                if (!command.VertexShader.Created)
                 {
-                    //TODO: Log the fact it skipped a command due to no shader program
-                    continue;
+                    // Build a OpenGL shader from our commands vertex shader data.
+                    vertexShader = new GLShader(command.VertexShader);
+                    this._glShaderCache.Add(command.VertexShader, vertexShader);
+                } else
+                {
+                    vertexShader = this._glShaderCache[command.VertexShader.ResourceIndex];
                 }
+
+                GLShader fragmentShader;
+                if (!command.FragmentShader.Created)
+                {
+                    // Build a OpenGL shader from our commands vertex shader data.
+                    fragmentShader = new GLShader(command.FragmentShader);
+                    this._glShaderCache.Add(command.FragmentShader, fragmentShader);
+                }
+                else
+                {
+                    fragmentShader = this._glShaderCache[command.FragmentShader.ResourceIndex];
+                }                
+
+                if(command.VertexShader != _currentState.VertexShader ||
+                   command.FragmentShader != _currentState.FragmentShader)
+                {
+                    // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
+                    if (command.ShaderProgram == null)
+                    {
+                        command.ShaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
+                    }
+                    
+                    _currentState.VertexShader = command.VertexShader;
+                    _currentState.FragmentShader = command.FragmentShader;                    
+                } else
+                {
+                    command.ShaderProgram = _currentState.ShaderProgram;
+                }             
 
                 // Build Shader Program as appropriate     
                 GLShaderProgram program;
@@ -282,7 +324,7 @@ namespace Fe
                 if (!command.ShaderProgram.Created)
                 {
                     // Build a OpenGL shader program from our commands ShaderProgram data.
-                    program = new GLShaderProgram(command.ShaderProgram);
+                    program = new GLShaderProgram(new GLShader[] { vertexShader, fragmentShader });
                     this._glProgramCache.Add(command.ShaderProgram, program);
                 }
                 else
@@ -698,6 +740,7 @@ namespace Fe
 
 #if RENDERER_GL
         internal ResourceCache<GLShaderProgram> _glProgramCache;
+        internal ResourceCache<GLShader> _glShaderCache;
         internal ResourceCache<GLBuffer> _glVBCache;
         internal ResourceCache<GLBuffer> _glIBCache;
         private IGraphicsContext _context;        
@@ -805,6 +848,7 @@ namespace Fe
         {
 #if RENDERER_GL
             this._glProgramCache.Clean(true);
+            this._glShaderCache.Clean(true);
             this._glIBCache.Clean(true);
             this._glVBCache.Clean(true);
 

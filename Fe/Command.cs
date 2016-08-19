@@ -14,9 +14,14 @@ namespace Fe
     /// </summary>
     public class Command
     {
-        public void SetShaderProgram(ShaderProgram shaderProgram)
+        public void SetVertexShader(Shader vertexShader)
         {
-            this.ShaderProgram = shaderProgram;
+            this.VertexShader = vertexShader;
+        }
+
+        public void SetFragmentShader(Shader fragmentShader)
+        {
+            this.FragmentShader = fragmentShader;
         }
 
         public void SetBlendState(BlendState blendState)
@@ -63,6 +68,10 @@ namespace Fe
         public byte ViewId { get { return viewId; } set { viewId = value; } }
 
         internal ShaderProgram ShaderProgram;
+
+        internal Shader VertexShader;
+
+        internal Shader FragmentShader;
 
         internal BlendState BlendState;
 

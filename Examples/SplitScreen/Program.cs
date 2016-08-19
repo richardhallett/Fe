@@ -145,7 +145,8 @@ namespace Fe.Examples.SplitScreen
                 for (int i = 0; i < 5; i++ )
                 {
                     var cubeCommand = view1Bucket.AddCommand(1);
-                    cubeCommand.SetShaderProgram(shaderProgram);
+                    cubeCommand.SetVertexShader(vertexShader);
+                    cubeCommand.SetFragmentShader(fragmentShader);
                     cubeCommand.SetVertexBuffer(vb);
                     cubeCommand.SetIndexBuffer(ib);
                     
@@ -153,7 +154,8 @@ namespace Fe.Examples.SplitScreen
                     cubeCommand.SetTransform(Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f));
 
                     var cubeCommand2 = view2Bucket.AddCommand(1);
-                    cubeCommand2.SetShaderProgram(shaderProgram);
+                    cubeCommand2.SetVertexShader(vertexShader);
+                    cubeCommand2.SetFragmentShader(fragmentShader);
                     cubeCommand2.SetVertexBuffer(vb);
                     cubeCommand2.SetIndexBuffer(ib);
 
