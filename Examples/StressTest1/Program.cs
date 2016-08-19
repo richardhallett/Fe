@@ -61,8 +61,8 @@ namespace Fe.Examples.StressTest1
             switch (renderer.GetRendererType())
             {
                 case Fe.RendererType.OpenGL:
-                    using (StreamReader fragReader = new StreamReader("splitscreen.frag"))
-                    using (StreamReader vertReader = new StreamReader("splitscreen.vert"))
+                    using (StreamReader fragReader = new StreamReader("stresstest.frag"))
+                    using (StreamReader vertReader = new StreamReader("stresstest.vert"))
                     {
                         vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
                         fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
