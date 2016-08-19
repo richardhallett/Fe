@@ -85,39 +85,7 @@ namespace Fe
         /// <value>
         /// The blend constant.
         /// </value>
-        public Colour4 BlendConstant { get; set; }
-
-        /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <param name="b">The b.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator ==(BlendState a, BlendState b)
-        {
-            if (((object)a) == null || ((object)b) == null)
-                return Object.Equals(a, b);
-
-            return a.Equals(b);
-        }
-
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <param name="b">The b.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator !=(BlendState a, BlendState b)
-        {
-            if (((object)a) == null || ((object)b) == null)
-                return !Object.Equals(a, b);
-
-            return !a.Equals(b);
-        }
+        public Colour4 BlendConstant { get; set; }        
 
         /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
@@ -150,18 +118,13 @@ namespace Fe
             if (other == null)
                 return false;
 
-            if (EnableBlending == other.EnableBlending &&
-                SourceBlendColour == other.SourceBlendColour &&
-                DestinationBlendColour == other.DestinationBlendColour &&
-                ColourOperation == other.ColourOperation &&
-                SourceBlendAlpha == other.SourceBlendAlpha &&
-                DestinationBlendAlpha == other.DestinationBlendAlpha &&
-                AlphaOperation == other.AlphaOperation)
-            {
-                return true;
-            }
-
-            return false;
+            return (EnableBlending == other.EnableBlending &&
+                    SourceBlendColour == other.SourceBlendColour &&
+                    DestinationBlendColour == other.DestinationBlendColour &&
+                    ColourOperation == other.ColourOperation &&
+                    SourceBlendAlpha == other.SourceBlendAlpha &&
+                    DestinationBlendAlpha == other.DestinationBlendAlpha &&
+                    AlphaOperation == other.AlphaOperation);
         }
 
         /// <summary>

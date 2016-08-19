@@ -39,38 +39,6 @@ namespace Fe
         public DepthFunc DepthFunc { get; set; }
 
         /// <summary>
-        /// Implements the operator ==.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <param name="b">The b.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator ==(DepthState a, DepthState b)
-        {
-            if (((object)a) == null || ((object)b) == null)
-                return Object.Equals(a, b);
-
-            return a.Equals(b);
-        }
-
-        /// <summary>
-        /// Implements the operator !=.
-        /// </summary>
-        /// <param name="a">a.</param>
-        /// <param name="b">The b.</param>
-        /// <returns>
-        /// The result of the operator.
-        /// </returns>
-        public static bool operator !=(DepthState a, DepthState b)
-        {
-            if (((object)a) == null || ((object)b) == null)
-                return !Object.Equals(a, b);
-
-            return !a.Equals(b);
-        }
-
-        /// <summary>
         /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
         /// </summary>
         /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
@@ -101,14 +69,9 @@ namespace Fe
             if (other == null)
                 return false;
 
-            if (EnableDepthTest == other.EnableDepthTest &&
-                EnableDepthWrite == other.EnableDepthWrite &&
-                DepthFunc == other.DepthFunc)
-            {
-                return true;
-            }
-
-            return false;
+            return (EnableDepthTest == other.EnableDepthTest &&
+                    EnableDepthWrite == other.EnableDepthWrite &&
+                    DepthFunc == other.DepthFunc);
         }
 
         /// <summary>
