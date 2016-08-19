@@ -151,8 +151,8 @@ namespace Fe
                 // Look for stuff that needs to be cleaned.
                 foreach (var cachedItem in this._cacheLookup)
                 {
-                    WeakReference novumResource = cachedItem.Value;
-                    if (!novumResource.IsAlive)
+                    WeakReference resource = cachedItem.Value;
+                    if (!resource.IsAlive)
                     {
                         _cacheCleanupQueue.Enqueue(cachedItem.Key);
                     }
