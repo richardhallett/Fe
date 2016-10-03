@@ -189,21 +189,23 @@ namespace Fe
         }
 
         /// <summary>
-        /// Reset the this.
+        /// Reset the renderer and all state.
         /// </summary>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
-        public void Reset(int width, int height)
+        public void Reset(int width = 0, int height = 0)
         {
             // Invalidate the current state
             this._currentState = new FrameState();
 
             // Store size details
-            this.Width = width;
-            this.Height = height;
+            if (width > 0)
+                this.Width = width;
+            if (height > 0)
+                this.Height = height;
 
             // Reset the default view
-            this._defaultView = new View(0, 0, width, height);
+            this._defaultView = new View(0, 0, this.Width, this.Height);
             this._defaultView.ClearColour = new Colour4(0x719AB7FF);
 
             ResetViewPort(this._defaultView);
