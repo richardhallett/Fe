@@ -105,15 +105,15 @@ namespace Fe.Examples.StressTest1
             // Create vertex buffer for our cube
             var vb = new Fe.VertexBuffer<PosColorVertex>(vertices);
             var ib = new Fe.IndexBuffer(indexPositions);
-            
+
             // Specify number of cube dimensions
             int dim = 16;
             int totalCubeCount = dim * dim * dim;
-            
+
             // Threshold for the timings
             const double highThreshold = 1000 / 65;
             const double lowThreshold = 1000 / 57;
-            
+
             float animTime = 0.0f; // Use for animating the cubes           
 
             // Create some timers and run the main loop
@@ -121,7 +121,7 @@ namespace Fe.Examples.StressTest1
             int frameCount = 0;
             double frameTime = 0;
             double frameTimeAccum = 0;
-            double averageFrameTime = 0;         
+            double averageFrameTime = 0;
 
             form.Resize += (object o, EventArgs e) =>
             {
@@ -135,7 +135,7 @@ namespace Fe.Examples.StressTest1
                 view.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
 
                 renderer.Reset(form.Width, form.Height);
-            };         
+            };
 
             form.FormClosing += (object o, FormClosingEventArgs e) =>
             {
@@ -145,73 +145,78 @@ namespace Fe.Examples.StressTest1
 
             Fe.Forms.Application.Run(form, () =>
             {
-                frameTime = frameTimer.Elapsed.TotalMilliseconds;
-                frameTimer.Restart();
+            frameTime = frameTimer.Elapsed.TotalMilliseconds;
+            frameTimer.Restart();
 
-                frameTimeAccum += frameTime;                
-                // Increase/Decrease dimensions of cubes based upon average frame time
-                if (frameTimeAccum >= 1000)
+            frameTimeAccum += frameTime;
+            // Increase/Decrease dimensions of cubes based upon average frame time
+            if (frameTimeAccum >= 1000)
+            {
+                averageFrameTime = frameTimeAccum / frameCount;
+                if (averageFrameTime < highThreshold)
                 {
-                    averageFrameTime = frameTimeAccum / frameCount;
-                    if (averageFrameTime < highThreshold)
+                    dim = dim + 2;
+                }
+                else if (averageFrameTime > lowThreshold)
+                {
+                    dim = Math.Max(dim - 1, 2);
+                }
+
+                frameCount = 0;
+                frameTimeAccum = 0;
+
+                form.Text = String.Format("Cube count: {0}, Avg Frametime: {1:N2} , Avg FPS: {2:N0}", totalCubeCount, averageFrameTime, 1000f / averageFrameTime);
+            }
+            frameCount++;
+
+            // Starting point
+            Nml.Vector3 initial = new Nml.Vector3(
+                -0.6f * dim / 2.0f,
+                -0.6f * dim / 2.0f,
+                -15.0f
+            );
+
+            totalCubeCount = dim * dim * dim;
+
+            // Increase the animation
+            animTime += (float)frameTime * 0.0010f;
+
+            for (int x = 0; x < dim; x++)
+            // Parallel.For(0, dim, x =>
+            {
+                for (int y = 0; y < dim; y++)
+                {
+                    for (int z = 0; z < dim; z++)
                     {
-                        dim = dim + 2;
-                    }
-                    else if (averageFrameTime > lowThreshold)
-                    {
-                        dim = Math.Max(dim - 1, 2);
-                    }
+                        var cubeCommand = geometryBucket.AddCommand(1);
 
-                    frameCount = 0;
-                    frameTimeAccum = 0;
+                        cubeCommand.VertexShader = vertexShader;
+                        cubeCommand.FragmentShader = fragmentShader;
+                        cubeCommand.VertexBuffer = vb;
+                        cubeCommand.IndexBuffer = ib;
 
-                    form.Text = String.Format("Cube count: {0}, Avg Frametime: {1:N2} , Avg FPS: {2:N0}", totalCubeCount, averageFrameTime, 1000f / averageFrameTime);
-                }                
-                frameCount++;
+                        Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
 
-                // Starting point
-                Nml.Vector3 initial = new Nml.Vector3(
-                    -0.6f * dim / 2.0f,
-                    -0.6f * dim / 2.0f,
-                    -15.0f
-                );
+                        // Rotate it to make look pretty    
+                        Nml.Quaternion rotQuat;
+                        Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
+                        Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
 
-                totalCubeCount = dim * dim * dim;
+                        // Set translation part
+                        cubeTransform.M14 = initial.x + x * 0.8f;
+                        cubeTransform.M24 = initial.y + y * 0.8f;
+                        cubeTransform.M34 = initial.z + z * 0.8f;
 
-                // Increase the animation
-                animTime += (float)frameTime * 0.0010f;
-        
-                for (int x = 0; x < dim; x++)
-              //  Parallel.For(0, dim, x =>
-                {               
-                    for (int y = 0; y < dim; y++)
-                    {
-                       for (int z = 0; z < dim; z++)
-                        {
-                            var cubeCommand = geometryBucket.AddCommand(1);
-
-                            cubeCommand.SetVertexShader(vertexShader);
-                            cubeCommand.SetFragmentShader(fragmentShader);
-                            cubeCommand.SetVertexBuffer(vb);
-                            cubeCommand.SetIndexBuffer(ib);
-                         
-                            Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
-
-                            // Rotate it to make look pretty    
-                            Nml.Quaternion rotQuat;
-                            Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
-                            Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
-
-                            // Set translation part
-                            cubeTransform.M14 = initial.x + x * 0.8f;
-                            cubeTransform.M24 = initial.y + y * 0.8f;
-                            cubeTransform.M34 = initial.z + z * 0.8f;
-
-                            cubeCommand.SetTransform(cubeTransform);
+                        // Slightly faster to set the transform via the individual matrix components as we can avoid a memory allocation of a temporary array.
+                        cubeCommand.SetTransformComponents(
+                            cubeTransform.M11, cubeTransform.M12, cubeTransform.M13, cubeTransform.M14,
+                            cubeTransform.M21, cubeTransform.M22, cubeTransform.M23, cubeTransform.M24,
+                            cubeTransform.M31, cubeTransform.M32, cubeTransform.M33, cubeTransform.M34,
+                            cubeTransform.M41, cubeTransform.M42, cubeTransform.M43, cubeTransform.M44);
                         }
                     }
                 }
-           //     );
+                //);
 
                 // Submit current commands queued to the renderer for rendering.
                 renderer.EndFrame();      

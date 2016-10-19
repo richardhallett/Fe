@@ -57,19 +57,9 @@ namespace Fe
             
             // Store the command
             var command = this._nextCommands[currentCommand];
-            
-            // Reset the data in a command
-            // TODO: This is really icky to maintain, need to reconsider a better way, maybe moving it to the Command object itself.
-            command.ShaderProgram = null;
-            command.VertexShader = null;
-            command.FragmentShader = null;
-            command.BlendState = null;
-            command.RasteriserState = null;
-            command.DepthState = null;
-            command.VertexBuffer = null;
-            command.IndexBuffer = null;
-            command.SharedUniforms = null;
-            command.Transform = null;
+
+            // Reset the data in a command for reuse
+            command.Reset();
             
             // View is the one the bucket belongs to
             command.ViewId = ViewId;

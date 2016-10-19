@@ -647,14 +647,11 @@ namespace Fe
                 }
 
                 // Per command transform                
-                if (this.predefinedModelUniformLocation != -1 && command.Transform != null)
-                {
-                    Nml.Matrix4x4 transformMatrix = Nml.Matrix4x4.Identity;
-                    transformMatrix = command.Transform.Value;
-
+                if (this.predefinedModelUniformLocation != -1 && command.isMatrixSet)
+                {                    
                     unsafe
                     {
-                        float* matrix_ptr = &transformMatrix.M11;
+                        fixed (float* matrix_ptr = &command.Transform[0])
                         {
                             GL.UniformMatrix4(this.predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }

@@ -8,7 +8,8 @@ namespace Fe.Examples.Basics
 {
     class ExampleData
     {
-        public ShaderProgram DefaultProgram { get; set; }
+        public Shader DefaultVertexShader{ get; set; }
+        public Shader DefaultFragmentShader { get; set; }
         public UniformBuffer DefaultUniforms { get; set; }
     }
 }

@@ -146,7 +146,7 @@ namespace Fe.Examples.Dynamic
                 cubeCommand.SetUniformBuffer(sharedUniforms);
                 cubeCommand.SetRasteriserState(rs);
 
-                // Generate new vertice positions
+                // Generate new vertice positionsd
                 for (i = 0; i < vertices.Length; i++)
                 {
                     float newPos = (float)Math.Sin(waveyTime + i) * 1.5f;

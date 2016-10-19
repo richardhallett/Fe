@@ -63,7 +63,8 @@ namespace Fe.Examples.Basics
             // Draw the translucent cube second
             var transluscentCube = commandBucket.AddCommand(2);
 
-            transluscentCube.SetShaderProgram(exampleData.DefaultProgram);
+            transluscentCube.SetVertexShader(exampleData.DefaultVertexShader);
+            transluscentCube.SetFragmentShader(exampleData.DefaultFragmentShader);
             transluscentCube.SetBlendState(_bs);
             transluscentCube.SetVertexBuffer(_vb);
             transluscentCube.SetIndexBuffer(_ib);
@@ -74,7 +75,8 @@ namespace Fe.Examples.Basics
             // Draw the opaque cube first
             var opaqueCube = commandBucket.AddCommand(1);
 
-            opaqueCube.SetShaderProgram(exampleData.DefaultProgram);
+            opaqueCube.SetVertexShader(exampleData.DefaultVertexShader);
+            opaqueCube.SetFragmentShader(exampleData.DefaultFragmentShader);
             opaqueCube.SetVertexBuffer(_vb);
             opaqueCube.SetIndexBuffer(_ib);
             opaqueCube.SetUniformBuffer(_opaque);

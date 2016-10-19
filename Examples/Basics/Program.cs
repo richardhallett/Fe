@@ -47,9 +47,8 @@ namespace Fe.Examples.Basics
                     throw new Exception("Unknown backend renderer type");
             }
 
-            // Link shaders into a program for binding.
-            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
-            exampleData.DefaultProgram = shaderProgram;
+            exampleData.DefaultVertexShader = vertexShader;
+            exampleData.DefaultFragmentShader = fragmentShader;
 
             Fe.Uniform colourUniform = new Fe.Uniform("colour", Fe.UniformType.Uniform4f);
             var defaultUniforms = new Fe.UniformBuffer();
@@ -64,21 +63,29 @@ namespace Fe.Examples.Basics
             // Example to demonstrate transluencey with a sort
             var translucencySortExample = new TranslucencySortExample();
 
-            
+            // Example to demonstrate transluencey with a sort
+            var texturesExample = new TexturesExample();
+
             // Default example to start with
-            runningExample = primitivesExample;
+            runningExample = texturesExample;
 
             // Key handling to switch examples
             form.KeyDown += (object o, KeyEventArgs e) =>
             {
-                if(e.KeyCode == Keys.D1)
-                {
+                renderer.Reset();
+                if (e.KeyCode == Keys.D1)
+                {                    
                     runningExample = primitivesExample;
                 }
 
                 if (e.KeyCode == Keys.D2)
                 {
                     runningExample = translucencySortExample;
+                }
+
+                if (e.KeyCode == Keys.D3)
+                {
+                    runningExample = texturesExample;
                 }
             };
 
