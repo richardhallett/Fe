@@ -63,25 +63,25 @@ namespace Fe.Examples.Basics
             // Draw the translucent cube second
             var transluscentCube = commandBucket.AddCommand(2);
 
-            transluscentCube.SetVertexShader(exampleData.DefaultVertexShader);
-            transluscentCube.SetFragmentShader(exampleData.DefaultFragmentShader);
-            transluscentCube.SetBlendState(_bs);
-            transluscentCube.SetVertexBuffer(_vb);
-            transluscentCube.SetIndexBuffer(_ib);
-            transluscentCube.SetUniformBuffer(_translucent);
+            transluscentCube.VertexShader = exampleData.DefaultVertexShader;
+            transluscentCube.FragmentShader = exampleData.DefaultFragmentShader;
+            transluscentCube.BlendState = _bs;
+            transluscentCube.VertexBuffer = _vb;
+            transluscentCube.IndexBuffer = _ib;
+            transluscentCube.SharedUniforms = _translucent;
 
-            transluscentCube.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(z: 1.0f)));
+            transluscentCube.Transform = Nml.Matrix4x4.Translate(new Nml.Vector3(z: 1.0f)).ToArray();
             
             // Draw the opaque cube first
             var opaqueCube = commandBucket.AddCommand(1);
 
-            opaqueCube.SetVertexShader(exampleData.DefaultVertexShader);
-            opaqueCube.SetFragmentShader(exampleData.DefaultFragmentShader);
-            opaqueCube.SetVertexBuffer(_vb);
-            opaqueCube.SetIndexBuffer(_ib);
-            opaqueCube.SetUniformBuffer(_opaque);
+            opaqueCube.VertexShader = exampleData.DefaultVertexShader;
+            opaqueCube.FragmentShader = exampleData.DefaultFragmentShader;
+            opaqueCube.VertexBuffer = _vb;
+            opaqueCube.IndexBuffer = _ib;
+            opaqueCube.SharedUniforms = _opaque;
 
-            opaqueCube.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -0.4f)));
+            opaqueCube.Transform = Nml.Matrix4x4.Translate(new Nml.Vector3(x: -0.4f)).ToArray();
         }
 
         private VertexBuffer<PosColorVertex> _vb;

@@ -132,7 +132,7 @@ namespace Fe.Examples.StressTest1
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, -5.0f, -50.0f);
 
-                view.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
+                view.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
 
                 renderer.Reset(form.Width, form.Height);
             };
@@ -194,7 +194,7 @@ namespace Fe.Examples.StressTest1
                         cubeCommand.FragmentShader = fragmentShader;
                         cubeCommand.VertexBuffer = vb;
                         cubeCommand.IndexBuffer = ib;
-
+                              
                         Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
 
                         // Rotate it to make look pretty    

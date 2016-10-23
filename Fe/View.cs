@@ -45,7 +45,7 @@ namespace Fe
         public View(int x, int y, int width, int height, ScissorRect scissorRect)
         {
             ClearDepth = 1;
-            X = x;
+            X = x; 
             Y = y;
             Width = width;
             Height = height;
@@ -60,7 +60,7 @@ namespace Fe
         /// </summary>
         /// <param name="viewMatrix">The view matrix.</param>
         /// <param name="projectionMatrix">The projection matrix.</param>
-        public void SetTransform(Nml.Matrix4x4 viewMatrix, Nml.Matrix4x4 projectionMatrix)
+        public void SetTransform(float[] viewMatrix, float[] projectionMatrix)
         {
             ViewMatrix = viewMatrix;
             ProjectionMatrix = projectionMatrix;
@@ -117,11 +117,11 @@ namespace Fe
         /// <summary>
         /// The view matrix for this view.
         /// </summary>
-        internal Nml.Matrix4x4 ViewMatrix;
+        internal float[] ViewMatrix = new float[16];
 
         /// <summary>
         /// The projection matrix for this view.
         /// </summary>
-        internal Nml.Matrix4x4 ProjectionMatrix;
+        internal float[] ProjectionMatrix = new float[16];
     }
 }

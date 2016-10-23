@@ -575,13 +575,11 @@ namespace Fe
                 {
                     // View transform
                     if (predefinedViewUniformLocation != -1)
-                    {
-                        Nml.Matrix4x4 viewMatrix = Nml.Matrix4x4.Identity;
-                        viewMatrix = view.ViewMatrix;
-
+                    {                        
                         unsafe
                         {
-                            float* matrix_ptr = &viewMatrix.M11;
+                            var viewMatrix = view.ViewMatrix;
+                            fixed (float* matrix_ptr = &viewMatrix[0])
                             {
                                 GL.UniformMatrix4(predefinedViewUniformLocation, 1, false, matrix_ptr);
                             }
@@ -590,13 +588,11 @@ namespace Fe
 
                     // Projection transform
                     if (predefinedProjectionUniformLocation != -1)
-                    {
-                        Nml.Matrix4x4 projectionMatrix = Nml.Matrix4x4.Identity;
-                        projectionMatrix = view.ProjectionMatrix;
-
+                    {                        
                         unsafe
                         {
-                            float* matrix_ptr = &projectionMatrix.M11;
+                            var projectionMatrix = view.ProjectionMatrix;
+                            fixed (float* matrix_ptr = &projectionMatrix[0])
                             {
                                 GL.UniformMatrix4(predefinedProjectionUniformLocation, 1, false, matrix_ptr);
                             }
@@ -614,10 +610,10 @@ namespace Fe
                         {
                             if (uniform.Key.Type == UniformType.Matrix4x4f)
                             {
-                                var matrix = (Nml.Matrix4x4)uniform.Value;
+                                var matrix = (float[])uniform.Value;
                                 unsafe
                                 {
-                                    float* matrix_ptr = &matrix.M11;
+                                    fixed (float* matrix_ptr = &matrix[0])
                                     {
                                         GL.UniformMatrix4(uniformLocation, 1, false, matrix_ptr);
                                     }

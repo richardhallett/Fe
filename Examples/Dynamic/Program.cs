@@ -117,7 +117,7 @@ namespace Fe.Examples.Dynamic
                 // Set up a projection matrix
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0, 0, -50.0f);
-                sharedUniforms.Set(projectionUniform, projectionMatrix);
+                sharedUniforms.Set(projectionUniform, projectionMatrix.ToArray());
 
                 renderer.Reset(form.Width, form.Height);
             };
@@ -139,12 +139,12 @@ namespace Fe.Examples.Dynamic
 
                 var cubeCommand = geometryBucket.AddCommand(1);
 
-                cubeCommand.SetVertexShader(vertexShader);
-                cubeCommand.SetFragmentShader(fragmentShader);
-                cubeCommand.SetVertexBuffer(vb);
-                cubeCommand.SetIndexBuffer(ib);
-                cubeCommand.SetUniformBuffer(sharedUniforms);
-                cubeCommand.SetRasteriserState(rs);
+                cubeCommand.VertexShader = vertexShader;
+                cubeCommand.FragmentShader = fragmentShader;
+                cubeCommand.VertexBuffer = vb;
+                cubeCommand.IndexBuffer = ib;
+                cubeCommand.SharedUniforms = sharedUniforms;
+                cubeCommand.RasteriserState = rs;
 
                 // Generate new vertice positionsd
                 for (i = 0; i < vertices.Length; i++)
@@ -162,7 +162,7 @@ namespace Fe.Examples.Dynamic
                 Nml.Quaternion.RotateEuler(0, rotTime * 0.37f, rotTime * 0.13f, out rotQuat);
                 Nml.Quaternion.GetMatrix4x4(ref rotQuat, out planeTransform);
 
-                cubeCommand.SetTransform(planeTransform);
+                cubeCommand.Transform = planeTransform.ToArray();
 
                 // Submit current commands queued to the renderer for rendering.
                 renderer.EndFrame();

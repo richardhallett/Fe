@@ -24,7 +24,7 @@ namespace Fe
         /// </summary>
         /// <param name="uniform">The uniform.</param>
         /// <param name="matrix">The matrix.</param>
-        public void Set(Uniform uniform, Nml.Matrix4x4 matrix)
+        public void Set(Uniform uniform, float[] matrix)
         {
             this._uniforms[uniform] = matrix;
         }

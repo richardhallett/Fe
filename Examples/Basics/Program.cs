@@ -98,7 +98,7 @@ namespace Fe.Examples.Basics
                 var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0, 0, -3.0f);
 
-                view.SetTransform(Nml.Matrix4x4.Identity, projectionMatrix);
+                view.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
 
                 renderer.Reset(form.Width, form.Height);
             };
