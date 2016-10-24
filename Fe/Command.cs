@@ -101,6 +101,7 @@ namespace Fe
             VertexBuffer = null;
             IndexBuffer = null;
             SharedUniforms = null;
+            PrimitiveType = PrimitiveType.Triangles;
             isMatrixSet = false;
         }
 
