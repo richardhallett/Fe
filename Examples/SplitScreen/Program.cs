@@ -66,10 +66,7 @@ namespace Fe.Examples.SplitScreen
                 default:
                     throw new Exception("Unknown backend renderer type");
             }
-
-            // Link shaders into a program for binding.
-            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] {vertexShader, fragmentShader} );                     
-
+            
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
             {

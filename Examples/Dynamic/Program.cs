@@ -71,10 +71,7 @@ namespace Fe.Examples.Dynamic
                 default:
                     throw new Exception("Unknown backend renderer type");
             }
-
-            // Link shaders into a program for binding.
-            var shaderProgram = new Fe.ShaderProgram(new Fe.Shader[] { vertexShader, fragmentShader });
-
+            
             // Build plane data
             var plane = new Fe.Extra.Geometry.Plane(30, 30, 30, 30);
 

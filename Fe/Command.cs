@@ -14,7 +14,7 @@ namespace Fe
     {        
         public byte ViewId { internal get { return viewId; } set { viewId = value; } }
 
-        public ShaderProgram ShaderProgram { internal get; set; }
+        internal ShaderProgram ShaderProgram { get; set; }
 
         public Shader VertexShader { internal get; set; }
 
