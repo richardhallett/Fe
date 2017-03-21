@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Fe.Extra\Geometry\Fe.Extra.csproj" />
+    <ProjectReference Include="..\..\Fe\Fe.csproj" />
+    <ProjectReference Include="..\ExampleBase\ExampleBase.csproj" />
+  </ItemGroup>
+
+</Project>

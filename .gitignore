@@ -1,6 +1,4 @@
 *.suo
-*.sln
-*.csproj
 *.user
 *.sdf
 *.speccache
@@ -9,4 +7,3 @@ bin/
 obj/
 Debug/
 Release/
-packages
