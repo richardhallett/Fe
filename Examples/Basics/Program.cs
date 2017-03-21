@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Fe.Examples.Basics
 {
@@ -14,13 +8,13 @@ namespace Fe.Examples.Basics
     {        
         static void Main(string[] args)
         {
-            var form = new Fe.Forms.GraphicsForm();
+            var canvas = new ExampleBase.GraphicsCanvas();
 
             // Create the renderer
             var renderer = new Fe.Renderer();
 
             // Set the handle from our form so we let Fe create context/devices as appropriate.
-            renderer.SetWindowHandle(form.Handle);
+            renderer.SetWindowHandle(canvas.Handle);
 
             // Initialise the renderer
             renderer.Init();
@@ -36,12 +30,8 @@ namespace Fe.Examples.Basics
             switch (renderer.GetRendererType())
             {
                 case Fe.RendererType.OpenGL:
-                    using (StreamReader fragReader = new StreamReader("default.frag"))
-                    using (StreamReader vertReader = new StreamReader("default.vert"))
-                    {
-                        vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
-                        fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
-                    }
+                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("default.vert"));
+                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("default.frag"));
                     break;
                 default:
                     throw new Exception("Unknown backend renderer type");
@@ -68,52 +58,77 @@ namespace Fe.Examples.Basics
 
             // Default example to start with
             runningExample = texturesExample;
+            var runningExampleIndex = 0;
 
-            // Key handling to switch examples
-            form.KeyDown += (object o, KeyEventArgs e) =>
-            {
-                renderer.Reset();
-                if (e.KeyCode == Keys.D1)
-                {                    
-                    runningExample = primitivesExample;
-                }
-
-                if (e.KeyCode == Keys.D2)
-                {
-                    runningExample = translucencySortExample;
-                }
-
-                if (e.KeyCode == Keys.D3)
-                {
-                    runningExample = texturesExample;
-                }
+            var examples = new List<IExample> {
+                texturesExample,
+                primitivesExample,
+                translucencySortExample
             };
 
-            form.Resize += (object o, EventArgs e) =>
+            void ChangeExample()
             {
-                var view = new Fe.View(0, 0, form.Width, form.Height);
+                renderer.Reset();
+
+                if (runningExampleIndex < examples.Count-1)
+                {
+                    runningExampleIndex += 1;
+                } else
+                {
+                    runningExampleIndex = 0;
+                }
+
+                runningExample = examples[runningExampleIndex];
+            }            
+
+            void Resize(int width, int height)
+            {
+                var view = new Fe.View(0, 0, width, height);
                 renderer.SetView(0, view);
                 
                 // Set up a projection matrix
-                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
+                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)width / (float)height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0, 0, -3.0f);
 
                 view.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
 
-                renderer.Reset(form.Width, form.Height);
-            };
+                renderer.Reset(width, height);
+            }
 
-            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            // Force an Initial resize, you could handle this with some event on your window if you wanted.
+            Resize(canvas.Width, canvas.Height);
+
+            void Cleanup()
             {
                 // Kill off the renderer and clean up all underlying resources.
                 renderer.Dispose();
-            };
+            }
 
-            Fe.Forms.Application.Run(form, () =>
+            void Update()
             {
                 runningExample.Update(geometryBucket, exampleData);
 
                 renderer.EndFrame();
+            }
+
+            canvas.MouseUp += () =>
+            {
+                ChangeExample();
+            };
+
+            canvas.Resize += () =>
+            {
+                Resize(canvas.Width, canvas.Height);
+            };
+
+            canvas.Closing += () =>
+            {
+                Cleanup();
+            };
+
+            ExampleBase.Application.Run(canvas, () =>
+            {
+                Update();
             });
         }
     }

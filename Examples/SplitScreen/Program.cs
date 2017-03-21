@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Fe.Examples.SplitScreen
 {
@@ -41,13 +36,14 @@ namespace Fe.Examples.SplitScreen
 
         static void Main(string[] args)
         {
-            var form = new Fe.Forms.GraphicsForm();
+            // Setup a renderering window, this can be handled with any windowing/platform library
+            var canvas = new ExampleBase.GraphicsCanvas();
 
             // Create the renderer
             var renderer = new Fe.Renderer();
 
             // Set the handle from our form so we let Fe create context/devices as appropriate.
-            renderer.SetWindowHandle(form.Handle);
+            renderer.SetWindowHandle(canvas.Handle);
             // Initialise defaults
             renderer.Init();
 
@@ -55,13 +51,9 @@ namespace Fe.Examples.SplitScreen
             Fe.Shader vertexShader, fragmentShader;
             switch(renderer.GetRendererType()) 
             {                
-                case Fe.RendererType.OpenGL:                
-                    using (StreamReader fragReader = new StreamReader("splitscreen.frag"))
-                    using (StreamReader vertReader = new StreamReader("splitscreen.vert"))
-                    {
-                        vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
-                        fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
-                    }
+                case Fe.RendererType.OpenGL:
+                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("splitscreen.vert"));
+                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("splitscreen.frag"));
                     break;
                 default:
                     throw new Exception("Unknown backend renderer type");
@@ -101,31 +93,34 @@ namespace Fe.Examples.SplitScreen
             var vb = new Fe.VertexBuffer<PosColorVertex>(vertices);
             var ib = new Fe.IndexBuffer(indexPositions);            
 
-            form.Resize += (object o, EventArgs e) =>
+            void Resize(int width, int height)
             {
-                var view1 = new Fe.View(0, form.Height / 2, form.Width, form.Height / 2, true);
+                var view1 = new Fe.View(0, height / 2, width, height / 2, true);
                 view1.ClearColour = new Fe.Colour4(1.0f, 1.0f, 1.0f);
-                var view2 = new Fe.View(0, 0, form.Width, form.Height / 2, true); 
+                var view2 = new Fe.View(0, 0, width, height / 2, true); 
 
                 renderer.SetView(0, view1);
                 renderer.SetView(1, view2);
 
                 // Set up a projection matrix
-                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / ((float)form.Height / 2), 0.1f, 100.0f);
+                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)width / ((float)height / 2), 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0.0f, 0.0f, -5.0f);
 
                 view1.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
                 projectionMatrix *= Nml.Matrix4x4.Translate(0.0f, 0.0f, -5.0f);
                 view2.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
 
-                renderer.Reset(form.Width, form.Height);
-            };
+                renderer.Reset(width, height);
+            }
 
-            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            // Force an Initial resize, you could handle this with some event on your window if you wanted.
+            Resize(canvas.Width, canvas.Height);
+
+            void Cleanup()
             {
                 // Kill off the renderer and clean up all underlying resources.
                 renderer.Dispose();
-            };
+            }
 
             var view1Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 0);
             var view2Bucket = renderer.AddCommandBucket(UInt16.MaxValue, 1);
@@ -134,7 +129,8 @@ namespace Fe.Examples.SplitScreen
             Stopwatch frameTimer = Stopwatch.StartNew();
             double frameTime = 0;
             float rotY = 0.0f;
-            Fe.Forms.Application.Run(form, () =>
+
+            void Update()
             {
                 frameTime = frameTimer.Elapsed.TotalMilliseconds;
                 frameTimer.Restart();
@@ -164,10 +160,22 @@ namespace Fe.Examples.SplitScreen
                 renderer.EndFrame();
 
                 rotY += 0.001f;
-            });
+            }
 
-            // Kill off the renderer and clean up all underlying resources.
-            renderer.Dispose();
+            canvas.Resize += () =>
+            {
+                Resize(canvas.Width, canvas.Height);
+            };
+
+            canvas.Closing += () =>
+            {
+                Cleanup();
+            };
+
+            ExampleBase.Application.Run(canvas, () =>
+            {
+                Update();
+            });            
         }
     }
 }

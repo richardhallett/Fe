@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Module>
-  <Name>Fe</Name>
-  <DefaultAction>resync</DefaultAction>
-  <DefaultLinuxPlatforms>Linux</DefaultLinuxPlatforms>
-  <DefaultWindowsPlatforms>Linux, Windows</DefaultWindowsPlatforms>
-  <SupportedPlatforms>Linux, Windows</SupportedPlatforms>
-  <GenerateNuGetRepositories>true</GenerateNuGetRepositories>
-</Module>

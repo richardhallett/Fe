@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Fe.Examples.Dynamic
 {
@@ -42,13 +36,13 @@ namespace Fe.Examples.Dynamic
 
         static void Main(string[] args)
         {
-            var form = new Fe.Forms.GraphicsForm();
+            var canvas = new ExampleBase.GraphicsCanvas();
 
             // Create the renderer
             var renderer = new Fe.Renderer();
 
             // Set the handle from our form so we let Fe create context/devices as appropriate.
-            renderer.SetWindowHandle(form.Handle);
+            renderer.SetWindowHandle(canvas.Handle);
 
             // Initialise the renderer
             renderer.Init();
@@ -61,12 +55,8 @@ namespace Fe.Examples.Dynamic
             switch (renderer.GetRendererType())
             {
                 case Fe.RendererType.OpenGL:
-                    using (StreamReader fragReader = new StreamReader("default.frag"))
-                    using (StreamReader vertReader = new StreamReader("default.vert"))
-                    {
-                        vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
-                        fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
-                    }
+                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("default.vert"));
+                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("default.frag"));
                     break;
                 default:
                     throw new Exception("Unknown backend renderer type");
@@ -107,25 +97,28 @@ namespace Fe.Examples.Dynamic
             float rotTime = 0.0f;
             float waveyTime = 0.0f;
 
-            form.Text = "Dynamic vertex buffer update example";
+            canvas.Title = "Dynamic vertex buffer update example";
 
-            form.Resize += (object o, EventArgs e) =>
+            void Resize(int width, int height)
             {
                 // Set up a projection matrix
-                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
+                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)width / (float)height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(0, 0, -50.0f);
                 sharedUniforms.Set(projectionUniform, projectionMatrix.ToArray());
 
-                renderer.Reset(form.Width, form.Height);
-            };
+                renderer.Reset(width, height);
+            }
 
-            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            // Force an Initial resize, you could handle this with some event on your window if you wanted.
+            Resize(canvas.Width, canvas.Height);
+
+            void Cleanup()
             {
                 // Kill off the renderer and clean up all underlying resources.
                 renderer.Dispose();
-            };
+            }
 
-            Fe.Forms.Application.Run(form, () =>
+            void Update()
             {
                 frameTime = frameTimer.Elapsed.TotalMilliseconds;
                 frameTimer.Restart();
@@ -163,6 +156,21 @@ namespace Fe.Examples.Dynamic
 
                 // Submit current commands queued to the renderer for rendering.
                 renderer.EndFrame();
+            }
+
+            canvas.Resize += () =>
+            {
+                Resize(canvas.Width, canvas.Height);
+            };
+
+            canvas.Closing += () =>
+            {
+                Cleanup();
+            };
+
+            ExampleBase.Application.Run(canvas, () =>
+            {
+                Update();
             });
         }
     }

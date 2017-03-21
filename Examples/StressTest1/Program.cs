@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Fe.Examples.StressTest1
 {
@@ -42,13 +37,14 @@ namespace Fe.Examples.StressTest1
 
         static void Main(string[] args)
         {
-            var form = new Fe.Forms.GraphicsForm();
-
+            // Setup a renderering window, this can be handled with any windowing/platform library
+            var canvas = new ExampleBase.GraphicsCanvas();
+            
             // Create the renderer
             var renderer = new Fe.Renderer();
 
             // Set the handle from our form so we let Fe create context/devices as appropriate.
-            renderer.SetWindowHandle(form.Handle);
+            renderer.SetWindowHandle(canvas.Handle);
 
             // Initialise the renderer
             renderer.Init();
@@ -60,13 +56,10 @@ namespace Fe.Examples.StressTest1
             Fe.Shader vertexShader, fragmentShader;
             switch (renderer.GetRendererType())
             {
-                case Fe.RendererType.OpenGL:
-                    using (StreamReader fragReader = new StreamReader("stresstest.frag"))
-                    using (StreamReader vertReader = new StreamReader("stresstest.vert"))
-                    {
-                        vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, vertReader.ReadToEnd());
-                        fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, fragReader.ReadToEnd());
-                    }
+                
+                case Fe.RendererType.OpenGL:                    
+                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("stresstest.vert"));
+                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("stresstest.frag"));
                     break;
                 default:
                     throw new Exception("Unknown backend renderer type");
@@ -123,103 +116,121 @@ namespace Fe.Examples.StressTest1
             double frameTimeAccum = 0;
             double averageFrameTime = 0;
 
-            form.Resize += (object o, EventArgs e) =>
+            void Resize(int width, int height)
             {
-                var view = new Fe.View(0, 0, form.Width, form.Height);
+                var view = new Fe.View(0, 0, width, height);
                 renderer.SetView(0, view);
 
                 // Set up a projection matrix
-                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)form.Width / (float)form.Height, 0.1f, 100.0f);
+                var projectionMatrix = Nml.Matrix4x4.PerspectiveProjectionRH(Nml.Common.Pi / 4, (float)width / (float)height, 0.1f, 100.0f);
                 projectionMatrix *= Nml.Matrix4x4.Translate(-5.0f, -5.0f, -50.0f);
 
                 view.SetTransform(Nml.Matrix4x4.Identity.ToArray(), projectionMatrix.ToArray());
 
-                renderer.Reset(form.Width, form.Height);
-            };
+                renderer.Reset(width, height);
+            }
 
-            form.FormClosing += (object o, FormClosingEventArgs e) =>
+            // Force an Initial resize, you could handle this with some event on your window if you wanted.
+            Resize(canvas.Width, canvas.Height);
+
+            void Cleanup()
             {
                 // Kill off the renderer and clean up all underlying resources.
                 renderer.Dispose();
-            };
-
-            Fe.Forms.Application.Run(form, () =>
-            {
-            frameTime = frameTimer.Elapsed.TotalMilliseconds;
-            frameTimer.Restart();
-
-            frameTimeAccum += frameTime;
-            // Increase/Decrease dimensions of cubes based upon average frame time
-            if (frameTimeAccum >= 1000)
-            {
-                averageFrameTime = frameTimeAccum / frameCount;
-                if (averageFrameTime < highThreshold)
-                {
-                    dim = dim + 2;
-                }
-                else if (averageFrameTime > lowThreshold)
-                {
-                    dim = Math.Max(dim - 1, 2);
-                }
-
-                frameCount = 0;
-                frameTimeAccum = 0;
-
-                form.Text = String.Format("Cube count: {0}, Avg Frametime: {1:N2} , Avg FPS: {2:N0}", totalCubeCount, averageFrameTime, 1000f / averageFrameTime);
             }
-            frameCount++;
 
-            // Starting point
-            Nml.Vector3 initial = new Nml.Vector3(
-                -0.6f * dim / 2.0f,
-                -0.6f * dim / 2.0f,
-                -15.0f
-            );
-
-            totalCubeCount = dim * dim * dim;
-
-            // Increase the animation
-            animTime += (float)frameTime * 0.0010f;
-
-            for (int x = 0; x < dim; x++)
-            // Parallel.For(0, dim, x =>
+            void Update()
             {
-                for (int y = 0; y < dim; y++)
+                frameTime = frameTimer.Elapsed.TotalMilliseconds;
+                frameTimer.Restart();
+
+                frameTimeAccum += frameTime;
+                // Increase/Decrease dimensions of cubes based upon average frame time
+                if (frameTimeAccum >= 1000)
                 {
-                    for (int z = 0; z < dim; z++)
+                    averageFrameTime = frameTimeAccum / frameCount;
+                    if (averageFrameTime < highThreshold)
                     {
-                        var cubeCommand = geometryBucket.AddCommand(1);
+                        dim = dim + 2;
+                    }
+                    else if (averageFrameTime > lowThreshold)
+                    {
+                        dim = Math.Max(dim - 1, 2);
+                    }
 
-                        cubeCommand.VertexShader = vertexShader;
-                        cubeCommand.FragmentShader = fragmentShader;
-                        cubeCommand.VertexBuffer = vb;
-                        cubeCommand.IndexBuffer = ib;
-                              
-                        Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
+                    frameCount = 0;
+                    frameTimeAccum = 0;
 
-                        // Rotate it to make look pretty    
-                        Nml.Quaternion rotQuat;
-                        Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
-                        Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
+                    canvas.Title = String.Format("Cube count: {0}, Avg Frametime: {1:N2} , Avg FPS: {2:N0}", totalCubeCount, averageFrameTime, 1000f / averageFrameTime);
+                }
+                frameCount++;
 
-                        // Set translation part
-                        cubeTransform.M14 = initial.x + x * 0.8f;
-                        cubeTransform.M24 = initial.y + y * 0.8f;
-                        cubeTransform.M34 = initial.z + z * 0.8f;
+                // Starting point
+                Nml.Vector3 initial = new Nml.Vector3(
+                    -0.6f * dim / 2.0f,
+                    -0.6f * dim / 2.0f,
+                    -15.0f
+                );
 
-                        // Slightly faster to set the transform via the individual matrix components as we can avoid a memory allocation of a temporary array.
-                        cubeCommand.SetTransformComponents(
-                            cubeTransform.M11, cubeTransform.M12, cubeTransform.M13, cubeTransform.M14,
-                            cubeTransform.M21, cubeTransform.M22, cubeTransform.M23, cubeTransform.M24,
-                            cubeTransform.M31, cubeTransform.M32, cubeTransform.M33, cubeTransform.M34,
-                            cubeTransform.M41, cubeTransform.M42, cubeTransform.M43, cubeTransform.M44);
+                totalCubeCount = dim * dim * dim;
+
+                // Increase the animation
+                animTime += (float)frameTime * 0.0010f;
+
+                for (int x = 0; x < dim; x++)
+                // Parallel.For(0, dim, x =>
+                {
+                    for (int y = 0; y < dim; y++)
+                    {
+                        for (int z = 0; z < dim; z++)
+                        {
+                            var cubeCommand = geometryBucket.AddCommand(1);
+
+                            cubeCommand.VertexShader = vertexShader;
+                            cubeCommand.FragmentShader = fragmentShader;
+                            cubeCommand.VertexBuffer = vb;
+                            cubeCommand.IndexBuffer = ib;
+
+                            Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
+
+                            // Rotate it to make look pretty    
+                            Nml.Quaternion rotQuat;
+                            Nml.Quaternion.RotateEuler(animTime + x * 0.21f, animTime + y * 0.37f, animTime + y * 0.13f, out rotQuat);
+                            Nml.Quaternion.GetMatrix4x4(ref rotQuat, out cubeTransform);
+
+                            // Set translation part
+                            cubeTransform.M14 = initial.x + x * 0.8f;
+                            cubeTransform.M24 = initial.y + y * 0.8f;
+                            cubeTransform.M34 = initial.z + z * 0.8f;
+
+                            // Slightly faster to set the transform via the individual matrix components as we can avoid a memory allocation of a temporary array.
+                            cubeCommand.SetTransformComponents(
+                                cubeTransform.M11, cubeTransform.M12, cubeTransform.M13, cubeTransform.M14,
+                                cubeTransform.M21, cubeTransform.M22, cubeTransform.M23, cubeTransform.M24,
+                                cubeTransform.M31, cubeTransform.M32, cubeTransform.M33, cubeTransform.M34,
+                                cubeTransform.M41, cubeTransform.M42, cubeTransform.M43, cubeTransform.M44);
                         }
                     }
                 }
                 //);
 
                 // Submit current commands queued to the renderer for rendering.
-                renderer.EndFrame();      
+                renderer.EndFrame();
+            }
+
+            canvas.Resize += () =>
+            {
+                Resize(canvas.Width, canvas.Height);
+            };
+
+            canvas.Closing += () =>
+            {
+                Cleanup();
+            };
+
+            ExampleBase.Application.Run(canvas, () =>
+            {
+                Update();
             });                       
         }
     }
