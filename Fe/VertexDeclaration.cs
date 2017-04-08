@@ -30,7 +30,7 @@ namespace Fe
                 Type attribType;
                 attribMapping.TryGetValue(attribute.Type, out attribType);
 
-                this.Offsets[attribute.Name] = stride;
+                this.Offsets[attribute.Name] = this.Stride;
                 stride = Marshal.SizeOf(attribType) * attribute.Size;
 
                 this.Stride += stride;
