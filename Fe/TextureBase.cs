@@ -11,7 +11,7 @@ namespace Fe
     {
         public abstract int Width { get; set; }
         public abstract int Height { get; set; }
-        public abstract TextureFormat TextureFormat { get; set; }
+        public abstract PixelFormat PixelFormat { get; set; }
         public abstract TextureType TextureType { get; set; }
 
         /// <summary>

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Fe
 {
-    public enum TextureFormat
+    public enum PixelFormat
     {
         R8,
         R8I,
