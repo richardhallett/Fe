@@ -11,6 +11,19 @@ namespace Fe
     /// </summary>
     internal class FrameState
     {
+        private const int numStages = 16;
+
+        public FrameState()
+        {
+            // Create the commands texture stage data            
+            TextureStages = new TextureStage[numStages];
+            for (int i = 0; i < numStages; i++)
+            {
+                TextureStages[i] = new TextureStage();
+            }
+        }
+
+
         public ShaderProgram ShaderProgram { get; set; }
 
         public Shader VertexShader { get; set; }
@@ -30,6 +43,8 @@ namespace Fe
         public IndexBuffer IndexBuffer { get; set; }
 
         public PrimitiveType PrimitiveType { get; set; }
+
+        public TextureStage[] TextureStages { get; set; } = new TextureStage[16];
 
         public byte? ViewId { get; set; }
     }

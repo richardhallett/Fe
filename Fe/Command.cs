@@ -11,7 +11,19 @@ namespace Fe
     /// A command represents instructions to be used by the renderer on next pass
     /// </summary>
     public class Command
-    {        
+    {
+        private const int numStages = 16;
+
+        public Command()
+        {
+            // Create the commands texture stage data            
+            TextureStages = new TextureStage[numStages];
+            for (int i = 0; i < numStages; i++ )
+            {
+                TextureStages[i] = new TextureStage();
+            }
+        }
+
         public byte ViewId { internal get { return viewId; } set { viewId = value; } }
 
         internal ShaderProgram ShaderProgram { get; set; }
@@ -33,6 +45,8 @@ namespace Fe
         public UniformBuffer SharedUniforms { internal get; set; }
 
         public PrimitiveType PrimitiveType { internal get; set; } = PrimitiveType.Triangles;
+
+        public TextureStage[] TextureStages { get; set; }
 
         public float[] Transform
         {
@@ -103,6 +117,10 @@ namespace Fe
             SharedUniforms = null;
             PrimitiveType = PrimitiveType.Triangles;
             isMatrixSet = false;
+            foreach (var ts in TextureStages)
+            {
+                ts.Reset();
+            }
         }
 
         private float[] _transform = new float[16];

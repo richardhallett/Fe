@@ -84,6 +84,7 @@ namespace Fe.Examples.Basics
             void Resize(int width, int height)
             {
                 var view = new Fe.View(0, 0, width, height);
+                view.ClearColour = new Colour4(0x62799e);
                 renderer.SetView(0, view);
                 
                 // Set up a projection matrix
@@ -113,7 +114,7 @@ namespace Fe.Examples.Basics
 
             canvas.MouseUp += () =>
             {
-                ChangeExample();
+               // ChangeExample();
             };
 
             canvas.Resize += () =>

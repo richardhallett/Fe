@@ -35,6 +35,7 @@ namespace Fe
             _glShaderCache = new ResourceCache<GLShader>(MaxShaderPrograms);
             _glVBCache = new ResourceCache<GLBuffer>(MaxVertexBuffers);
             _glIBCache = new ResourceCache<GLBuffer>(MaxIndexBuffers);
+            _glTextureCache = new ResourceCache<GLTexture>(MaxTextures);
 #endif
             _currentState = new FrameState();
 
@@ -62,7 +63,7 @@ namespace Fe
             {
                 // Create a GL context.
                 this._windowInfo = OpenTK.Platform.Utilities.CreateWindowsWindowInfo(_windowHandle);
-                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, this._windowInfo, 4, 1, GraphicsContextFlags.Default);
+                this._context = new OpenTK.Graphics.GraphicsContext(OpenTK.Graphics.GraphicsMode.Default, this._windowInfo, 3, 3, GraphicsContextFlags.Default);
                 this._context.LoadAll();
                 this._context.MakeCurrent(null);                
             }
@@ -603,7 +604,7 @@ namespace Fe
                 // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
                 if (command.SharedUniforms != null && sharedUniformsChanged)
                 {
-                    int uniformLocation;
+                    int uniformLocation;                    
                     foreach (var uniform in command.SharedUniforms._uniforms)
                     {
                         if (program.Uniforms.TryGetValue(uniform.Key.Name, out uniformLocation))
@@ -640,7 +641,7 @@ namespace Fe
                             }
                         }
                     }
-                }
+                }                
 
                 // Per command transform                
                 if (this.predefinedModelUniformLocation != -1 && command.isMatrixSet)
@@ -652,6 +653,54 @@ namespace Fe
                             GL.UniformMatrix4(this.predefinedModelUniformLocation, 1, false, matrix_ptr);
                         }
                     }
+                }
+
+                // Texture bindings
+                
+                i = 0;
+                GLTexture glTexture;
+                foreach (var textureStage in command.TextureStages)
+                {
+                    if (!textureStage.IsSet)
+                        continue;
+
+                    // Build Textures if required
+                    glTexture = null;
+                    if (textureStage.Texture != null)
+                    {
+                        // Have we already loaded and cached a texture
+                        if (!textureStage.Texture.Created)
+                        {
+                            glTexture = new GLTexture();
+                            glTexture.Create(textureStage.Texture);
+                            this._glTextureCache.Add(textureStage.Texture, glTexture);
+                        }
+                        else
+                        {
+                            glTexture = this._glTextureCache[textureStage.Texture.ResourceIndex];
+                        }
+                    }
+
+                    var currentTextureStage = _currentState.TextureStages[i];
+                    if (programChanged 
+                        || textureStage.Texture != currentTextureStage.Texture)
+                    {
+                        // Activate the texture based upon which texture stage we're in.
+                        GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{i}"));                        
+                        glTexture.Bind();
+
+                        // Bind the texture sample uniform to the correct stage
+                        int uniformLocation;
+                        if (program.Uniforms.TryGetValue(textureStage.TextureUniform.Name, out uniformLocation))
+                        {
+                            GL.Uniform1(uniformLocation, i);
+                        }
+
+                        // TODO: This isnt working as we're resetting the framestate so uh ye fix it
+                        currentTextureStage = textureStage;
+                    }
+
+                    i++;
                 }
 
                 // Work out what primitive topology we should be using
@@ -708,6 +757,7 @@ namespace Fe
         private const int MaxShaderPrograms = 512;
         private const int MaxVertexBuffers = 4096;
         private const int MaxIndexBuffers = 4096;
+        private const int MaxTextures = 4096;
         private const int MaxCommands = 131070;
 
         private IntPtr _windowHandle; // Window handle.
@@ -738,6 +788,8 @@ namespace Fe
         internal ResourceCache<GLShader> _glShaderCache;
         internal ResourceCache<GLBuffer> _glVBCache;
         internal ResourceCache<GLBuffer> _glIBCache;
+        internal ResourceCache<GLTexture> _glTextureCache;
+
         private IGraphicsContext _context;        
         internal int predefinedModelUniformLocation = -1;
         internal int predefinedViewUniformLocation = -1;
@@ -846,6 +898,7 @@ namespace Fe
             this._glShaderCache.Clean(true);
             this._glIBCache.Clean(true);
             this._glVBCache.Clean(true);
+            this._glTextureCache.Clean(true);
 
             this._context.MakeCurrent(null);
             _context.Dispose();            

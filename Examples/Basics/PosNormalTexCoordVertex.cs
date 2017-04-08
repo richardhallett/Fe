@@ -13,6 +13,20 @@ namespace Fe.Examples.Basics
         public float texcoord1;
         public uint abgr;
 
+        public PosNormalTexCoordVertex(float x, float y, float z, float nx, float ny, float nz, float u, float v, uint abgr)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.normx = nx;
+            this.normy = ny;
+            this.normz = nz;
+            this.texcoord0 = u;
+            this.texcoord1 = v;
+
+            this.abgr = abgr;
+        }
+
         private static Fe.VertexDeclaration vertexDeclaration = new Fe.VertexDeclaration
         (
             new Fe.VertexAttribute[] {

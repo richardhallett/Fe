@@ -1,8 +1,13 @@
-﻿
+﻿using System.Linq;
+using ImageSharp;
+
+
 namespace Fe.Examples.Basics
 {
     class TexturesExample : IExample
     {
+        Fe.Texture2d<Color> texture;
+        Fe.Uniform colourMapUniform;
 
         public TexturesExample()
         {
@@ -12,24 +17,34 @@ namespace Fe.Examples.Basics
             PosNormalTexCoordVertex[] vertices = new PosNormalTexCoordVertex[cube.Vertices.Length / 3];
 
             int i = 0;
-            int offset = 0;
+            int vertOffset = 0;
+            int texOffset = 0;
             for (i = 0; i < vertices.Length; i++)
             {
-                vertices[i].x = cube.Vertices[offset];
-                vertices[i].y = cube.Vertices[offset + 1];
-                vertices[i].z = cube.Vertices[offset + 2];
+                vertices[i].x = cube.Vertices[vertOffset];
+                vertices[i].y = cube.Vertices[vertOffset + 1];
+                vertices[i].z = cube.Vertices[vertOffset + 2];
 
-                //vertices[i].normx = cube.Normals[offset];
-                //vertices[i].normy = cube.Normals[offset + 1];
-                //vertices[i].normz = cube.Normals[offset + 2];
+                vertices[i].normx = cube.Normals[vertOffset];
+                vertices[i].normy = cube.Normals[vertOffset + 1];
+                vertices[i].normz = cube.Normals[vertOffset + 2];
 
-                //vertices[i].texcoord0 = cube.Normals[offset];
-                //vertices[i].texcoord1 = cube.Normals[offset + 1];
+                vertices[i].texcoord0 = cube.UVs[texOffset];
+                vertices[i].texcoord1 = cube.UVs[texOffset + 1];
 
                 vertices[i].abgr = 0xFF00FFFF;
 
-                offset += 3;
-            }            
+                vertOffset += 3;
+                texOffset += 2;
+            }
+
+            //PosNormalTexCoordVertex[] vertices =
+            //{                
+            //    new PosNormalTexCoordVertex ( 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0xff000000),   // Top Right
+            //    new PosNormalTexCoordVertex (0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0xff000000),   // Bottom Right
+            //    new PosNormalTexCoordVertex (-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 0xff000000),   // Bottom Left
+            //    new PosNormalTexCoordVertex (-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0xff000000)    // Top Left 
+            //};
 
             // Create vertex buffer for our cube
             this._vb = new Fe.VertexBuffer<PosNormalTexCoordVertex>(vertices);
@@ -37,9 +52,16 @@ namespace Fe.Examples.Basics
             // Create index buffer
             this._ib = new Fe.IndexBuffer(cube.Indices);
 
-            Fe.Uniform colourUniform = new Fe.Uniform("colour", Fe.UniformType.Uniform4f);
-            this._ub = new Fe.UniformBuffer();
-            this._ub.Set(colourUniform, 1.0f, 1.0f, 1.0f, 1.0f);
+            colourMapUniform = new Fe.Uniform("colourMap", Fe.UniformType.Uniform1f);
+            
+            // Load example image we're going to apply
+            using (Image image = Image.Load(@"..\assets\lilly.jpg"))
+            {
+                //var imageData = image.Pixels.Select(d => (byte)d.R).ToArray();
+
+                texture = new Fe.Texture2d<Color>(image.Pixels, image.Width, image.Height, TextureFormat.RGBA8);
+                //texture = new Fe.Texture2d<byte>(imageData, image.Width, image.Height, TextureFormat.R8);
+            }
         }
         
 
@@ -52,6 +74,7 @@ namespace Fe.Examples.Basics
             cube.VertexBuffer = _vb;
             cube.IndexBuffer = _ib;
             cube.SharedUniforms = _ub;
+            cube.TextureStages[0].Set(texture, colourMapUniform);
 
             cube.Transform = (Nml.Matrix4x4.Translate(new Nml.Vector3(z: -1.0f)) * Nml.Matrix4x4.RotateY(-0.5f)).ToArray();
         }
