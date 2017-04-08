@@ -38,14 +38,6 @@ namespace Fe.Examples.Basics
                 texOffset += 2;
             }
 
-            //PosNormalTexCoordVertex[] vertices =
-            //{                
-            //    new PosNormalTexCoordVertex ( 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, 0xff000000),   // Top Right
-            //    new PosNormalTexCoordVertex (0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, 0xff000000),   // Bottom Right
-            //    new PosNormalTexCoordVertex (-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 0xff000000),   // Bottom Left
-            //    new PosNormalTexCoordVertex (-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0xff000000)    // Top Left 
-            //};
-
             // Create vertex buffer for our cube
             this._vb = new Fe.VertexBuffer<PosNormalTexCoordVertex>(vertices);
 
