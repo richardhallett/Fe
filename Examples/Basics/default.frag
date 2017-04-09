@@ -11,5 +11,6 @@ out vec4 outputColor;
 void main()
 {
    //outputColor = colour;
+   //outputColor = vec4(UV.x, UV.y, 0.0f, 1.0f);
    outputColor = texture( colourMap, UV );
 }
