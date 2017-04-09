@@ -250,6 +250,11 @@ namespace Fe
         {
 #if RENDERER_GL
             GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
+
+
+            // Default state
+            GL.FrontFace(FrontFaceDirection.Cw);
+            
 #endif
             // Go through each of our commands that are for this frame.
             for (int i = 0; i < this._commandCount; i++)
@@ -710,7 +715,7 @@ namespace Fe
                     _currentState.PrimitiveType = command.PrimitiveType;
                     primType = glPrimitiveTypeMapping[command.PrimitiveType];
                 }
-
+                
                 // Lets draw!
                 if (ib != null)
                 {
