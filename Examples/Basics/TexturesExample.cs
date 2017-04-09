@@ -51,7 +51,7 @@ namespace Fe.Examples.Basics
             {
                 //var imageData = image.Pixels.Select(d => (byte)d.R).ToArray();
 
-                texture = new Fe.Texture2d<Color>(image.Width, image.Height, PixelFormat.RGBA8, image.Pixels);
+                texture = new Fe.Texture2d<Color>(image.Width, image.Height, SampleFormat.RGBA8, image.Pixels);
                 //texture = new Fe.Texture2d<byte>(imageData, image.Width, image.Height, TextureFormat.R8);
             }
         }

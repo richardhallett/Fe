@@ -26,7 +26,7 @@ namespace Fe
             GL.BindTexture(TextureTarget, TextureRef);
 
             // Figure out our texture format data and throw an exception if we can't work it out.
-            (var pif, var pf, var pt) = MapTextureFormat(texture.PixelFormat);
+            (var pif, var pf, var pt) = MapTextureFormat(texture.SampleFormat);
 
             var data_ptr = GCHandle.Alloc(texture.Data, GCHandleType.Pinned);
             try
@@ -68,127 +68,127 @@ namespace Fe
         /// Lookup for opengl pixel information.
         /// </summary>
         /// <value>
-        internal static (PixelInternalFormat pif, OpenTK.Graphics.OpenGL.PixelFormat pi, PixelType pt) MapTextureFormat(PixelFormat format)
+        internal static (PixelInternalFormat pif, OpenTK.Graphics.OpenGL.PixelFormat pi, PixelType pt) MapTextureFormat(SampleFormat format)
         {
             switch (format)
             {
-                case PixelFormat.R8:
+                case SampleFormat.R8:
                     return (PixelInternalFormat.R8, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.UnsignedByte);
-                case PixelFormat.R8I:
+                case SampleFormat.R8I:
                     return (PixelInternalFormat.R8i, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Byte);
-                case PixelFormat.R8UI:
+                case SampleFormat.R8UI:
                     return (PixelInternalFormat.R8ui, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.UnsignedByte);
-                case PixelFormat.R8_SNorm:
+                case SampleFormat.R8_SNorm:
                     return (PixelInternalFormat.R8Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Byte);
 
-                case PixelFormat.R16:
+                case SampleFormat.R16:
                     return (PixelInternalFormat.R16, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.UnsignedShort);
-                case PixelFormat.R16I:
+                case SampleFormat.R16I:
                     return (PixelInternalFormat.R16i, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Short);
-                case PixelFormat.R16UI:
+                case SampleFormat.R16UI:
                     return (PixelInternalFormat.R16ui, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.UnsignedShort);
-                case PixelFormat.R16_SNorm:
+                case SampleFormat.R16_SNorm:
                     return (PixelInternalFormat.R16Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Short);
 
-                case PixelFormat.R32I:
+                case SampleFormat.R32I:
                     return (PixelInternalFormat.R32i, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Int);
-                case PixelFormat.R32UI:
+                case SampleFormat.R32UI:
                     return (PixelInternalFormat.R32ui, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.UnsignedInt);
-                case PixelFormat.R32F:
+                case SampleFormat.R32F:
                     return (PixelInternalFormat.R32f, OpenTK.Graphics.OpenGL.PixelFormat.Red, PixelType.Float);
 
-                case PixelFormat.RG8:
+                case SampleFormat.RG8:
                     return (PixelInternalFormat.Rg8, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.UnsignedByte);
-                case PixelFormat.RG8I:
+                case SampleFormat.RG8I:
                     return (PixelInternalFormat.Rg8i, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Byte);
-                case PixelFormat.RG8UI:
+                case SampleFormat.RG8UI:
                     return (PixelInternalFormat.Rg8ui, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.UnsignedByte);
-                case PixelFormat.RG8_SNorm:
+                case SampleFormat.RG8_SNorm:
                     return (PixelInternalFormat.Rg8Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Byte);
 
-                case PixelFormat.RG16:
+                case SampleFormat.RG16:
                     return (PixelInternalFormat.Rg16, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.UnsignedShort);
-                case PixelFormat.RG16I:
+                case SampleFormat.RG16I:
                     return (PixelInternalFormat.Rg16i, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Short);
-                case PixelFormat.RG16UI:
+                case SampleFormat.RG16UI:
                     return (PixelInternalFormat.Rg16ui, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.UnsignedShort);
-                case PixelFormat.RG16_SNorm:
+                case SampleFormat.RG16_SNorm:
                     return (PixelInternalFormat.Rg16Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Short);
-                case PixelFormat.RG16F:
+                case SampleFormat.RG16F:
                     return (PixelInternalFormat.Rg16f, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Float);
 
-                case PixelFormat.RG32I:
+                case SampleFormat.RG32I:
                     return (PixelInternalFormat.Rg32i, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Int);
-                case PixelFormat.RG32UI:
+                case SampleFormat.RG32UI:
                     return (PixelInternalFormat.Rg32ui, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.UnsignedInt);
-                case PixelFormat.RG32F:
+                case SampleFormat.RG32F:
                     return (PixelInternalFormat.Rg32f, OpenTK.Graphics.OpenGL.PixelFormat.Rg, PixelType.Float);
 
 
-                case PixelFormat.RGB8:
+                case SampleFormat.RGB8:
                     return (PixelInternalFormat.Rgb8, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte);
-                case PixelFormat.RGB8I:
+                case SampleFormat.RGB8I:
                     return (PixelInternalFormat.Rgb8i, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Byte);
-                case PixelFormat.RGB8UI:
+                case SampleFormat.RGB8UI:
                     return (PixelInternalFormat.Rgb8ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte);
-                case PixelFormat.RGB8_SNorm:
+                case SampleFormat.RGB8_SNorm:
                     return (PixelInternalFormat.Rgb8Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Byte);
 
-                case PixelFormat.RGB16:
+                case SampleFormat.RGB16:
                     return (PixelInternalFormat.Rgb16, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Short);
-                case PixelFormat.RGB16I:
+                case SampleFormat.RGB16I:
                     return (PixelInternalFormat.Rgb16i, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Short);
-                case PixelFormat.RGB16UI:
+                case SampleFormat.RGB16UI:
                     return (PixelInternalFormat.Rgb16ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedByte);
-                case PixelFormat.RGB16_SNorm:
+                case SampleFormat.RGB16_SNorm:
                     return (PixelInternalFormat.Rgb16Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Byte);
-                case PixelFormat.RGB16F:
+                case SampleFormat.RGB16F:
                     return (PixelInternalFormat.Rgb16f, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Float);
 
-                case PixelFormat.RGB32I:
+                case SampleFormat.RGB32I:
                     return (PixelInternalFormat.Rgb32i, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Int);
-                case PixelFormat.RGB32UI:
+                case SampleFormat.RGB32UI:
                     return (PixelInternalFormat.Rgb32ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.UnsignedInt);
-                case PixelFormat.RGB32F:
+                case SampleFormat.RGB32F:
                     return (PixelInternalFormat.Rgb32f, OpenTK.Graphics.OpenGL.PixelFormat.Rgb, PixelType.Float);
 
-                case PixelFormat.RGBA8:
+                case SampleFormat.RGBA8:
                     return (PixelInternalFormat.Rgba8, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte);
-                case PixelFormat.RGBA8_SNorm:
+                case SampleFormat.RGBA8_SNorm:
                     return (PixelInternalFormat.Rgb8Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Byte);
-                case PixelFormat.RGBA8I:
+                case SampleFormat.RGBA8I:
                     return (PixelInternalFormat.Rgba8i, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Byte);
-                case PixelFormat.RGBA8UI:
+                case SampleFormat.RGBA8UI:
                     return (PixelInternalFormat.Rgba8ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedByte);                
 
-                case PixelFormat.RGBA16:
+                case SampleFormat.RGBA16:
                     return (PixelInternalFormat.Rgba16, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedShort);
-                case PixelFormat.RGBA16_SNorm:
+                case SampleFormat.RGBA16_SNorm:
                     return (PixelInternalFormat.Rgba16Snorm, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Short);
-                case PixelFormat.RGBA16I:
+                case SampleFormat.RGBA16I:
                     return (PixelInternalFormat.Rgba16i, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Short);
-                case PixelFormat.RGBA16UI:
+                case SampleFormat.RGBA16UI:
                     return (PixelInternalFormat.Rgba16ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedShort);
-                case PixelFormat.RGBA16F:
+                case SampleFormat.RGBA16F:
                     return (PixelInternalFormat.Rgba16f, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Float);
 
-                case PixelFormat.RGBA32I:
+                case SampleFormat.RGBA32I:
                     return (PixelInternalFormat.Rgba32i, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Int);
-                case PixelFormat.RGBA32UI:
+                case SampleFormat.RGBA32UI:
                     return (PixelInternalFormat.Rgba32ui, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.UnsignedInt);
-                case PixelFormat.RGBA32F:
+                case SampleFormat.RGBA32F:
                     return (PixelInternalFormat.Rgba32f, OpenTK.Graphics.OpenGL.PixelFormat.Rgba, PixelType.Float);
 
-                case PixelFormat.DepthComponent16:
+                case SampleFormat.DepthComponent16:
                     return (PixelInternalFormat.DepthComponent16, OpenTK.Graphics.OpenGL.PixelFormat.DepthComponent, PixelType.UnsignedShort);
-                case PixelFormat.DepthComponent24:
+                case SampleFormat.DepthComponent24:
                     return (PixelInternalFormat.DepthComponent24, OpenTK.Graphics.OpenGL.PixelFormat.DepthComponent, PixelType.UnsignedInt);
-                case PixelFormat.DepthComponent32:
+                case SampleFormat.DepthComponent32:
                     return (PixelInternalFormat.DepthComponent32, OpenTK.Graphics.OpenGL.PixelFormat.DepthComponent, PixelType.UnsignedInt);
-                case PixelFormat.DepthComponent32F:
+                case SampleFormat.DepthComponent32F:
                     return (PixelInternalFormat.DepthComponent32f, OpenTK.Graphics.OpenGL.PixelFormat.DepthComponent, PixelType.Float);
 
-                case PixelFormat.Depth24_Stencil8:
+                case SampleFormat.Depth24_Stencil8:
                     return (PixelInternalFormat.Depth24Stencil8, OpenTK.Graphics.OpenGL.PixelFormat.DepthStencil, PixelType.UnsignedInt248);
                                 
                 default:

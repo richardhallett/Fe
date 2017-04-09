@@ -6,11 +6,11 @@ namespace Fe
 {
     public class Texture2d<T> : TextureBase
     {
-        public Texture2d(int width, int height, PixelFormat format, T[] data)
+        public Texture2d(int width, int height, SampleFormat format, T[] data)
         {            
             Width = width;
             Height = height;
-            PixelFormat = format;
+            SampleFormat = format;
             TextureType = TextureType.Texture2D;
 
             _data = data;
@@ -18,7 +18,7 @@ namespace Fe
 
         public override int Width { get; set; }
         public override int Height { get; set; }
-        public override PixelFormat PixelFormat { get; set; }
+        public override SampleFormat SampleFormat { get; set; }
         public override TextureType TextureType { get; set; }
 
 
