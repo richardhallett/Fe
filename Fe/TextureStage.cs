@@ -12,7 +12,7 @@ namespace Fe
         /// <summary>
         /// Texture to use for this stage
         /// </summary>
-        public TextureBase Texture { get; set; }
+        public Texture Texture { get; set; }
 
         /// <summary>
         /// Uniform the texture will be bound to.

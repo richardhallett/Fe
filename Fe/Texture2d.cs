@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Fe
 {
-    public class Texture2d<T> : TextureBase
+    public class Texture2d<T> : Texture
     {
         public Texture2d(int width, int height, SampleFormat format, T[] data)
         {            
@@ -20,6 +20,7 @@ namespace Fe
         public override int Height { get; set; }
         public override SampleFormat SampleFormat { get; set; }
         public override TextureType TextureType { get; set; }
+
 
         /// <summary>
         /// Gets the type of the texture data.

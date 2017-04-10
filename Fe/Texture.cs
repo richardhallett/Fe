@@ -5,12 +5,12 @@ using System.Text;
 namespace Fe
 {
     /// <summary>
-    /// Interface to describe a generic texture object
+    /// Abstract class to describe a generic texture object
     /// </summary>
-    public abstract class TextureBase : GraphicsResource
+    public abstract class Texture : GraphicsResource
     {
         public abstract int Width { get; set; }
-        public abstract int Height { get; set; }        
+        public abstract int Height { get; set; }
         public abstract SampleFormat SampleFormat { get; set; }
         public abstract TextureType TextureType { get; set; }
 

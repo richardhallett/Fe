@@ -16,7 +16,7 @@ namespace Fe
         /// Creates the specified texture.
         /// </summary>
         /// <param name="texture">The texture.</param>
-        public void Create(TextureBase texture)
+        public void Create(Texture texture)
         {            
             switch (texture.TextureType)
             {
@@ -34,7 +34,7 @@ namespace Fe
         /// Builds a texture
         /// </summary>
         /// <param name="TextureBase">The texture data.</param>
-        public void Build(TextureBase texture)
+        public void Build(Texture texture)
         {
             GL.BindTexture(TextureTarget, TextureRef);
 
