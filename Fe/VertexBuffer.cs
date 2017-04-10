@@ -9,7 +9,7 @@ namespace Fe
     /// <summary>
     /// Stores vertices to be used on the GPU.
     /// </summary>
-    public class VertexBuffer<T> : VertexBufferBase where T : IVertex
+    public class VertexBuffer<T> : Buffer where T : IVertex
     {
         /// <summary>
         /// Init a VertexBuffer of a specific IVertex type.
@@ -19,12 +19,12 @@ namespace Fe
         public VertexBuffer(int size, bool dynamic = false)
         {
             this.Size = size;
-            this.VertexType = typeof(T);
+            this.DataType = typeof(T);
             this._vertices = new List<T>(size);
 
             this.Dynamic = dynamic;
 
-            var type = Activator.CreateInstance(this.VertexType) as IVertex;
+            var type = Activator.CreateInstance(this.DataType) as IVertex;
             if (type == null)
             {
                 throw new Exception("Invalid Vertex Type specified, does not inherit from IVertex");
@@ -116,7 +116,7 @@ namespace Fe
         /// <value>
         /// The type of the vertex.
         /// </value>
-        internal override Type VertexType { get; set; }
+        internal override Type DataType { get; set; }
 
         /// <summary>
         /// Gets a representation of the data for internal use.

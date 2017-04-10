@@ -9,7 +9,7 @@ namespace Fe
     /// <summary>
     /// Stores index elements passed to the GPU that are used to index the vertices in a <see cref="VertexBuffer{T}" />
     /// </summary>
-    public class IndexBuffer : GraphicsResource
+    public class IndexBuffer : Buffer
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="IndexBuffer"/> class.
@@ -21,6 +21,8 @@ namespace Fe
             this.Size = size;
             this.Dynamic = dynamic;
             this._indices = new List<uint>(this.Size);
+
+            DataType = typeof(uint); // Index Buffers are always uint
         }
 
         /// <summary>
@@ -78,7 +80,7 @@ namespace Fe
         /// <value>
         ///   <c>true</c> if dynamic; otherwise, <c>false</c>.
         /// </value>
-        public bool Dynamic { get; set; }
+        public override bool Dynamic { get; set; }
 
         /// <summary>
         /// Gets the size of the buffer.
@@ -86,7 +88,15 @@ namespace Fe
         /// <value>
         /// The length.
         /// </value>
-        public int Size { get; set; }
+        public override int Size { get; set; }
+
+        /// <summary>
+        /// Gets the type of the data is stored as.
+        /// </summary>
+        /// <value>
+        /// The type of the vertex.
+        /// </value>
+        internal override Type DataType { get; set; }
 
         /// <summary>
         /// Gets the Indices.
@@ -108,7 +118,7 @@ namespace Fe
         /// <value>
         /// The data.
         /// </value>
-        internal Object Data
+        internal override Object Data
         {
             get
             {

@@ -506,7 +506,7 @@ namespace Fe
                     if (!command.VertexBuffer.Created)
                     {
                         vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
-                        vb.Create(command.VertexBuffer.VertexType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
+                        vb.Create(command.VertexBuffer.DataType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
                         this._glVBCache.Add(command.VertexBuffer, vb);
                     }
                     else
@@ -559,7 +559,7 @@ namespace Fe
                         uint index = 0;
 
                         // Bind attributes that are defined for the vertex buffer
-                        var type = Activator.CreateInstance(command.VertexBuffer.VertexType) as IVertex;
+                        var type = Activator.CreateInstance(command.VertexBuffer.DataType) as IVertex;
                         foreach (var attribute in type.VertexDeclaration.Attributes)
                         {
                             VertexAttribPointerType glAttribType;

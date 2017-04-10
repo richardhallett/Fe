@@ -38,9 +38,9 @@ namespace Fe
 
         public RasteriserState RasteriserState { internal get; set; }
 
-        public VertexBufferBase VertexBuffer { internal get; set; }
+        public Buffer VertexBuffer { internal get; set; }
 
-        public IndexBuffer IndexBuffer { internal get; set; }
+        public Buffer IndexBuffer { internal get; set; }
 
         public UniformBuffer SharedUniforms { internal get; set; }
 

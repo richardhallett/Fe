@@ -9,10 +9,10 @@ namespace Fe
     /// <summary>
     /// Interface to describe a generic vertex buffer.
     /// </summary>
-    public abstract class VertexBufferBase : GraphicsResource
+    public abstract class Buffer : GraphicsResource
     {       
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="VertexBufferBase"/> is dynamic.
+        /// Gets or sets a value indicating whether this <see cref="Buffer"/> is dynamic.
         /// </summary>
         /// <value>
         ///   <c>true</c> if dynamic; otherwise, <c>false</c>.
@@ -36,11 +36,11 @@ namespace Fe
         internal abstract Object Data { get; }
 
         /// <summary>
-        /// Gets the type of the vertex.
+        /// Gets the type of the data in the vertex.
         /// </summary>
         /// <value>
         /// The type of the vertex.
         /// </value>
-        internal abstract Type VertexType { get; set; }        
+        internal abstract Type DataType { get; set; }
     }
 }
