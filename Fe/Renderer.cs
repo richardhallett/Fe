@@ -691,6 +691,12 @@ namespace Fe
                             {
                                 glTexture = this._glTextureCache[textureStage.Texture.ResourceIndex];
                             }
+
+                            // If a texture has changed re-create it.
+                            if (textureStage.Texture.Changed)
+                            {
+                                glTexture.Build(textureStage.Texture);
+                            }
                         }
 
                         // We must have a valid gl texture and a texture uniform defined before we can continue.

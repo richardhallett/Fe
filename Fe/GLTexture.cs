@@ -26,6 +26,16 @@ namespace Fe
             }            
 
             TextureRef = GL.GenTexture();
+
+            Build(texture);
+        }
+
+        /// <summary>
+        /// Builds a texture
+        /// </summary>
+        /// <param name="TextureBase">The texture data.</param>
+        public void Build(TextureBase texture)
+        {
             GL.BindTexture(TextureTarget, TextureRef);
 
             // Figure out our texture format data and throw an exception if we can't work it out.
@@ -41,7 +51,7 @@ namespace Fe
             {
                 data_ptr.Free();
             }
-            
+
             // Stop working with this texture
             GL.BindTexture(TextureTarget, 0);
         }
