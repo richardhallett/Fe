@@ -734,6 +734,12 @@ namespace Fe
                             {
                                 glSampler = this._glSamplerCache[textureStage.TextureSampler.ResourceIndex];
                             }
+
+                            // Did the texture sampler say it's change, if so then we need to rebuild.
+                            if(textureStage.TextureSampler.Changed)
+                            {
+                                glSampler.Build(textureStage.TextureSampler);
+                            }
                         }
 
                         // Bind the sampler to the texture stage we're working with.

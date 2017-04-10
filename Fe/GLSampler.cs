@@ -19,6 +19,11 @@ namespace Fe
         {
             SamplerRef = GL.GenSampler();
 
+            this.Build(sampler);
+        }
+
+        public void Build(TextureSampler sampler)
+        {
             GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureWrapS, (int)glTextureWrapMapping[sampler.AddressU]);
             GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureWrapT, (int)glTextureWrapMapping[sampler.AddressV]);
             GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureWrapR, (int)glTextureWrapMapping[sampler.AddressW]);
@@ -28,13 +33,14 @@ namespace Fe
             {
                 if (sampler.MipFilter == TextureFilter.Nearest && sampler.MinFilter == TextureFilter.Nearest)
                     GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest);
-                else if(sampler.MipFilter == TextureFilter.Nearest && sampler.MinFilter == TextureFilter.Linear)
+                else if (sampler.MipFilter == TextureFilter.Nearest && sampler.MinFilter == TextureFilter.Linear)
                     GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapNearest);
                 else if (sampler.MipFilter == TextureFilter.Linear && sampler.MinFilter == TextureFilter.Nearest)
                     GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapNearest);
                 else
                     GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            } else
+            }
+            else
             {
                 if (sampler.MinFilter == TextureFilter.Nearest)
                     GL.SamplerParameter(SamplerRef, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
