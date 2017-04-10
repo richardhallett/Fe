@@ -36,12 +36,15 @@ namespace Fe
             _glVBCache = new ResourceCache<GLBuffer>(MaxVertexBuffers);
             _glIBCache = new ResourceCache<GLBuffer>(MaxIndexBuffers);
             _glTextureCache = new ResourceCache<GLTexture>(MaxTextures);
+            _glSamplerCache = new ResourceCache<GLSampler>(MaxTextures);
 #endif
             _currentState = new FrameState();
 
             _defaultBlendState = new BlendState();
             _defaultDepthState = new DepthState();
             _defaultRasteriserState = new RasteriserState();
+
+            _defaultTextureSampler = new TextureSampler();
         }
 
         /// <summary>
@@ -660,50 +663,87 @@ namespace Fe
                     }
                 }
 
-                // Texture bindings
-                
+                // Texture bindings                
                 i = 0;
                 GLTexture glTexture;
+                GLSampler glSampler;
                 foreach (var textureStage in command.TextureStages)
-                {
-                    if (!textureStage.IsSet)
-                        continue;
-
-                    // Build Textures if required
-                    glTexture = null;
-                    if (textureStage.Texture != null)
-                    {
-                        // Have we already loaded and cached a texture
-                        if (!textureStage.Texture.Created)
-                        {
-                            glTexture = new GLTexture();
-                            glTexture.Create(textureStage.Texture);
-                            this._glTextureCache.Add(textureStage.Texture, glTexture);
-                        }
-                        else
-                        {
-                            glTexture = this._glTextureCache[textureStage.Texture.ResourceIndex];
-                        }
-                    }
-
+                {                   
                     var currentTextureStage = _currentState.TextureStages[i];
-                    if (programChanged 
-                        || textureStage.Texture != currentTextureStage.Texture)
-                    {
-                        // Activate the texture based upon which texture stage we're in.
-                        GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{i}"));                        
-                        glTexture.Bind();
 
-                        // Bind the texture sample uniform to the correct stage
-                        int uniformLocation;
-                        if (program.Uniforms.TryGetValue(textureStage.TextureUniform.Name, out uniformLocation))
+                    // Has a texture or a uniform changed, if so we need to potentially rebuild / rebind
+                    if (programChanged 
+                        || textureStage.Texture != currentTextureStage.Texture
+                        || textureStage.TextureUniform != currentTextureStage.TextureUniform)
+                    {
+                        // Build Textures if required
+                        glTexture = null;
+                        if (textureStage.Texture != null)
                         {
-                            GL.Uniform1(uniformLocation, i);
+                            // Have we already loaded and cached a texture
+                            if (!textureStage.Texture.Created)
+                            {
+                                glTexture = new GLTexture();
+                                glTexture.Create(textureStage.Texture);
+                                this._glTextureCache.Add(textureStage.Texture, glTexture);
+                            }
+                            else
+                            {
+                                glTexture = this._glTextureCache[textureStage.Texture.ResourceIndex];
+                            }
                         }
 
-                        // TODO: This isnt working as we're resetting the framestate so uh ye fix it
-                        currentTextureStage = textureStage;
+                        // We must have a valid gl texture and a texture uniform defined before we can continue.
+                        if (glTexture != null && textureStage.TextureUniform != null)
+                        {
+                            // Activate the texture based upon which texture stage we're in.
+                            GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{i}"));
+                            glTexture.Bind();
+
+                            // Bind the texture sample uniform to the correct stage                            
+                            int uniformLocation;
+                            if (program.Uniforms.TryGetValue(textureStage.TextureUniform.Name, out uniformLocation))
+                            {
+                                GL.Uniform1(uniformLocation, i);
+                            }
+                        }                   
                     }
+
+                    // Always ensure we have a texture sampler.
+                    if (textureStage.TextureSampler == null)
+                    {
+                        textureStage.TextureSampler = _defaultTextureSampler;
+                    }
+
+                    // If a texture sampler has changed then we are free to rebind this at any time regardless of what texture currently bound.
+                    if (programChanged
+                        || textureStage.TextureSampler != currentTextureStage.TextureSampler)
+                    {                       
+                        // Build a texture sample object if we need to
+                        glSampler = null;
+                        if (textureStage.TextureSampler != null)
+                        {
+                            // Have we already loaded and cached a texture
+                            if (!textureStage.TextureSampler.Created)
+                            {
+                                glSampler = new GLSampler();
+                                glSampler.Create(textureStage.TextureSampler);
+                                this._glSamplerCache.Add(textureStage.TextureSampler, glSampler);
+                            }
+                            else
+                            {
+                                glSampler = this._glSamplerCache[textureStage.TextureSampler.ResourceIndex];
+                            }
+                        }
+
+                        // Bind the sampler to the texture stage we're working with.
+                        if (glSampler != null)
+                        {
+                            GL.BindSampler(i, glSampler.SamplerRef);
+                        }
+                    }
+                    
+                    currentTextureStage = textureStage;
 
                     i++;
                 }
@@ -785,6 +825,8 @@ namespace Fe
         private DepthState _defaultDepthState; // Default depth state when none has been set
         private RasteriserState _defaultRasteriserState; // Default rasterisation state when none has been set
 
+        private TextureSampler _defaultTextureSampler; // Default texture sample when none has been set.
+
         // Holds current state of the frame
         internal FrameState _currentState;
 
@@ -794,6 +836,7 @@ namespace Fe
         internal ResourceCache<GLBuffer> _glVBCache;
         internal ResourceCache<GLBuffer> _glIBCache;
         internal ResourceCache<GLTexture> _glTextureCache;
+        internal ResourceCache<GLSampler> _glSamplerCache;
 
         private IGraphicsContext _context;        
         internal int predefinedModelUniformLocation = -1;
@@ -904,6 +947,7 @@ namespace Fe
             this._glIBCache.Clean(true);
             this._glVBCache.Clean(true);
             this._glTextureCache.Clean(true);
+            this._glSamplerCache.Clean(true);
 
             this._context.MakeCurrent(null);
             _context.Dispose();            

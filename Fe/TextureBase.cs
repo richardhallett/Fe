@@ -10,7 +10,7 @@ namespace Fe
     public abstract class TextureBase : GraphicsResource
     {
         public abstract int Width { get; set; }
-        public abstract int Height { get; set; }
+        public abstract int Height { get; set; }        
         public abstract SampleFormat SampleFormat { get; set; }
         public abstract TextureType TextureType { get; set; }
 

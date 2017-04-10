@@ -21,7 +21,6 @@ namespace Fe
         public override SampleFormat SampleFormat { get; set; }
         public override TextureType TextureType { get; set; }
 
-
         /// <summary>
         /// Gets the type of the texture data.
         /// </summary>

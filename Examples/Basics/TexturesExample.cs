@@ -7,6 +7,7 @@ namespace Fe.Examples.Basics
     class TexturesExample : IExample
     {
         Fe.Texture2d<Color> texture;
+        Fe.TextureSampler textureSampler;
         Fe.Uniform colourMapUniform;
 
         public TexturesExample()
@@ -38,6 +39,12 @@ namespace Fe.Examples.Basics
                 texOffset += 2;
             }
 
+            // For demo purposes lets up one side of of the cubes uv's to show sampler behaviour.
+            vertices[1].texcoord0 = 5.0f;
+            vertices[2].texcoord1 = 5.0f;
+            vertices[3].texcoord0 = 5.0f;
+            vertices[3].texcoord1 = 5.0f;
+
             // Create vertex buffer for our cube
             this._vb = new Fe.VertexBuffer<PosNormalTexCoordVertex>(vertices);
 
@@ -45,15 +52,17 @@ namespace Fe.Examples.Basics
             this._ib = new Fe.IndexBuffer(cube.Indices);
 
             colourMapUniform = new Fe.Uniform("colourMap", Fe.UniformType.Uniform1f);
-            
+
+            // Create a texture sampler state
+            textureSampler = new TextureSampler();
+            textureSampler.AddressU = TextureAddressMode.Repeat;
+            textureSampler.AddressV = TextureAddressMode.Repeat;
+
             // Load example image we're going to apply
             using (Image image = Image.Load(@"..\assets\lilly.jpg"))
-            {
-                //var imageData = image.Pixels.Select(d => (byte)d.R).ToArray();
-
+            {                
                 texture = new Fe.Texture2d<Color>(image.Width, image.Height, SampleFormat.RGBA8, image.Pixels);
-                //texture = new Fe.Texture2d<byte>(imageData, image.Width, image.Height, TextureFormat.R8);
-            }
+            }            
         }
         
 
@@ -66,7 +75,9 @@ namespace Fe.Examples.Basics
             cube.VertexBuffer = _vb;
             cube.IndexBuffer = _ib;
             cube.SharedUniforms = _ub;
-            cube.TextureStages[0].Set(texture, colourMapUniform);
+            cube.TextureStages[0].Texture = texture;
+            cube.TextureStages[0].TextureUniform = colourMapUniform;
+            cube.TextureStages[0].TextureSampler = textureSampler;
 
             cube.Transform = (Nml.Matrix4x4.Translate(new Nml.Vector3(z: -1.0f)) * Nml.Matrix4x4.RotateY(-0.5f)).ToArray();
         }

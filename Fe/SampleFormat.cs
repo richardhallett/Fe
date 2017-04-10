@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Fe
 {
+    /// <summary>
+    /// What the data in a sample(pixel) is defined as.
+    /// </summary>
     public enum SampleFormat
     {
         R8,

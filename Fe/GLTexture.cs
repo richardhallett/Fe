@@ -6,13 +6,16 @@ using System.Runtime.InteropServices;
 
 namespace Fe
 {
+    /// <summary>
+    /// Represents an internal OpenGL Texture
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
     internal class GLTexture : IDisposable
     {
-        public GLTexture()
-        {
-
-        }
-
+        /// <summary>
+        /// Creates the specified texture.
+        /// </summary>
+        /// <param name="texture">The texture.</param>
         public void Create(TextureBase texture)
         {            
             switch (texture.TextureType)
@@ -38,21 +41,18 @@ namespace Fe
             {
                 data_ptr.Free();
             }
-
-            GL.TexParameter(TextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-
+            
             // Stop working with this texture
             GL.BindTexture(TextureTarget, 0);
         }
 
+        /// <summary>
+        /// Binds the texture on the GPU..
+        /// </summary>
         public void Bind()
         {
             GL.BindTexture(TextureTarget, TextureRef);
         }
-
 
         /// <summary>
         /// Gets or sets the gl texture reference.
@@ -62,6 +62,12 @@ namespace Fe
         /// </value>
         public int TextureRef { get; protected set; }
 
+        /// <summary>
+        /// Gets or sets the texture target.
+        /// </summary>
+        /// <value>
+        /// The texture target.
+        /// </value>
         public TextureTarget TextureTarget { get; protected set;}
 
         /// <summary>
@@ -205,7 +211,7 @@ namespace Fe
         {
             unsafe
             {
-
+                GL.DeleteTexture(TextureRef);
             }
         }
 

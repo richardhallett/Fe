@@ -119,7 +119,9 @@ namespace Fe
             isMatrixSet = false;
             foreach (var ts in TextureStages)
             {
-                ts.Reset();
+                ts.Texture = null;
+                ts.TextureSampler = null;
+                ts.TextureUniform = null;
             }
         }
 

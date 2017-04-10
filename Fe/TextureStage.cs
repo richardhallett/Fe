@@ -4,26 +4,24 @@ using System.Text;
 
 namespace Fe
 {
+    /// <summary>
+    /// Describes the details of a te
+    /// </summary>
     public class TextureStage
     {
-        public TextureBase Texture { get; private set; }
+        /// <summary>
+        /// Texture to use for this stage
+        /// </summary>
+        public TextureBase Texture { get; set; }
 
-        public Uniform TextureUniform { get; private set; }
+        /// <summary>
+        /// Uniform the texture will be bound to.
+        /// </summary>
+        public Uniform TextureUniform { get; set; }
 
-        public bool IsSet { get; private set; }
-
-        public void Set(TextureBase texture, Uniform textureUniform)
-        {
-            Texture = texture;
-            TextureUniform = textureUniform;
-            IsSet = true;
-        }
-
-        public void Reset()
-        {
-            Texture = null;
-            TextureUniform = null;
-            IsSet = false;
-        }
+        /// <summary>
+        /// The sampler to use for this stage
+        /// </summary>
+        public TextureSampler TextureSampler { get; set; }
     }
 }
