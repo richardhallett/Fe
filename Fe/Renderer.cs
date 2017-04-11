@@ -256,14 +256,14 @@ namespace Fe
 
 
             // Default state
-            GL.FrontFace(FrontFaceDirection.Cw);
+            //GL.FrontFace(FrontFaceDirection.Cw);
             
 #endif
             // Go through each of our commands that are for this frame.
-            for (int i = 0; i < this._commandCount; i++)
+            for (int commandIndex = 0; commandIndex < this._commandCount; commandIndex++)
             {
                 // Next command to work with.
-                Command command = this._nextFrameCommands[i];
+                Command command = this._nextFrameCommands[commandIndex];
 
 #if RENDERER_GL
 
@@ -284,6 +284,7 @@ namespace Fe
                 }
 
                 // TODO: Redo this, but this time round we want to check for default shaders.
+                // For clarity atm if we have no vertex/fragment shaders we'll throw an exception this should not happen
                 //if (command.ShaderProgram == null)
                 //{
                 //    //TODO: Log the fact it skipped a command due to no shader program
@@ -664,12 +665,12 @@ namespace Fe
                 }
 
                 // Texture bindings                
-                i = 0;
+                int stage = 0;
                 GLTexture glTexture;
                 GLSampler glSampler;
                 foreach (var textureStage in command.TextureStages)
                 {                   
-                    var currentTextureStage = _currentState.TextureStages[i];
+                    var currentTextureStage = _currentState.TextureStages[stage];
 
                     // Has a texture or a uniform changed, if so we need to potentially rebuild / rebind
                     if (programChanged 
@@ -703,14 +704,14 @@ namespace Fe
                         if (glTexture != null && textureStage.TextureUniform != null)
                         {
                             // Activate the texture based upon which texture stage we're in.
-                            GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{i}"));
+                            GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{stage}"));
                             glTexture.Bind();
 
                             // Bind the texture sample uniform to the correct stage                            
                             int uniformLocation;
                             if (program.Uniforms.TryGetValue(textureStage.TextureUniform.Name, out uniformLocation))
                             {
-                                GL.Uniform1(uniformLocation, i);
+                                GL.Uniform1(uniformLocation, stage);
                             }
                         }                   
                     }
@@ -751,13 +752,13 @@ namespace Fe
                         // Bind the sampler to the texture stage we're working with.
                         if (glSampler != null)
                         {
-                            GL.BindSampler(i, glSampler.SamplerRef);
+                            GL.BindSampler(stage, glSampler.SamplerRef);
                         }
                     }
                     
                     currentTextureStage = textureStage;
 
-                    i++;
+                    stage++;
                 }
 
                 // Work out what primitive topology we should be using
@@ -775,7 +776,10 @@ namespace Fe
                 }
                 else
                 {
-                    GL.DrawArrays(primType, 0, vb.Size);
+                    if (vb != null)
+                    {
+                        GL.DrawArrays(primType, 0, vb.Size);
+                    }
                 }
 #endif
 
