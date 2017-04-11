@@ -117,11 +117,12 @@ namespace Fe
             SharedUniforms = null;
             PrimitiveType = PrimitiveType.Triangles;
             isMatrixSet = false;
-            foreach (var ts in TextureStages)
+
+            for(int stage = 0; stage < 16; stage++)
             {
-                ts.Texture = null;
-                ts.TextureSampler = null;
-                ts.TextureUniform = null;
+                TextureStages[stage].Texture = null;
+                TextureStages[stage].TextureSampler = null;
+                TextureStages[stage].TextureUniform = null;
             }
         }
 
