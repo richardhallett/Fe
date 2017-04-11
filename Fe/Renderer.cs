@@ -755,8 +755,8 @@ namespace Fe
                             GL.BindSampler(stage, glSampler.SamplerRef);
                         }
                     }
-                    
-                    currentTextureStage = textureStage;
+
+                    _currentState.TextureStages[stage] = textureStage;
 
                     stage++;
                 }
