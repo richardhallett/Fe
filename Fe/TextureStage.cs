@@ -7,7 +7,7 @@ namespace Fe
     /// <summary>
     /// Describes the details of a te
     /// </summary>
-    public class TextureStage
+    public struct TextureStage
     {
         /// <summary>
         /// Texture to use for this stage

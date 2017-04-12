@@ -665,43 +665,42 @@ namespace Fe
                 }
 
                 // Texture bindings                
-                int stage = 0;
                 GLTexture glTexture;
                 GLSampler glSampler;
-                foreach (var textureStage in command.TextureStages)
-                {                   
+                for (int stage = 0; stage < MaxTextureStages; stage++)
+                {                    
                     var currentTextureStage = _currentState.TextureStages[stage];
 
                     // Has a texture or a uniform changed, if so we need to potentially rebuild / rebind
                     if (programChanged 
-                        || textureStage.Texture != currentTextureStage.Texture
-                        || textureStage.TextureUniform != currentTextureStage.TextureUniform)
+                        || command.TextureStages[stage].Texture != currentTextureStage.Texture
+                        || command.TextureStages[stage].TextureUniform != currentTextureStage.TextureUniform)
                     {
                         // Build Textures if required
                         glTexture = null;
-                        if (textureStage.Texture != null)
+                        if (command.TextureStages[stage].Texture != null)
                         {
                             // Have we already loaded and cached a texture
-                            if (!textureStage.Texture.Created)
+                            if (!command.TextureStages[stage].Texture.Created)
                             {
                                 glTexture = new GLTexture();
-                                glTexture.Create(textureStage.Texture);
-                                this._glTextureCache.Add(textureStage.Texture, glTexture);
+                                glTexture.Create(command.TextureStages[stage].Texture);
+                                this._glTextureCache.Add(command.TextureStages[stage].Texture, glTexture);
                             }
                             else
                             {
-                                glTexture = this._glTextureCache[textureStage.Texture.ResourceIndex];
+                                glTexture = this._glTextureCache[command.TextureStages[stage].Texture.ResourceIndex];
                             }
 
                             // If a texture has changed re-create it.
-                            if (textureStage.Texture.Changed)
+                            if (command.TextureStages[stage].Texture.Changed)
                             {
-                                glTexture.Build(textureStage.Texture);
+                                glTexture.Build(command.TextureStages[stage].Texture);
                             }
                         }
 
                         // We must have a valid gl texture and a texture uniform defined before we can continue.
-                        if (glTexture != null && textureStage.TextureUniform != null)
+                        if (glTexture != null && command.TextureStages[stage].TextureUniform != null)
                         {
                             // Activate the texture based upon which texture stage we're in.
                             GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{stage}"));
@@ -709,7 +708,7 @@ namespace Fe
 
                             // Bind the texture sample uniform to the correct stage                            
                             int uniformLocation;
-                            if (program.Uniforms.TryGetValue(textureStage.TextureUniform.Name, out uniformLocation))
+                            if (program.Uniforms.TryGetValue(command.TextureStages[stage].TextureUniform.Name, out uniformLocation))
                             {
                                 GL.Uniform1(uniformLocation, stage);
                             }
@@ -717,35 +716,35 @@ namespace Fe
                     }
 
                     // Always ensure we have a texture sampler.
-                    if (textureStage.TextureSampler == null)
+                    if (command.TextureStages[stage].TextureSampler == null)
                     {
-                        textureStage.TextureSampler = _defaultTextureSampler;
+                        command.TextureStages[stage].TextureSampler = _defaultTextureSampler;
                     }
 
                     // If a texture sampler has changed then we are free to rebind this at any time regardless of what texture currently bound.
                     if (programChanged
-                        || textureStage.TextureSampler != currentTextureStage.TextureSampler)
+                        || command.TextureStages[stage].TextureSampler != currentTextureStage.TextureSampler)
                     {                       
                         // Build a texture sample object if we need to
                         glSampler = null;
-                        if (textureStage.TextureSampler != null)
+                        if (command.TextureStages[stage].TextureSampler != null)
                         {
                             // Have we already loaded and cached a texture
-                            if (!textureStage.TextureSampler.Created)
+                            if (!command.TextureStages[stage].TextureSampler.Created)
                             {
                                 glSampler = new GLSampler();
-                                glSampler.Create(textureStage.TextureSampler);
-                                this._glSamplerCache.Add(textureStage.TextureSampler, glSampler);
+                                glSampler.Create(command.TextureStages[stage].TextureSampler);
+                                this._glSamplerCache.Add(command.TextureStages[stage].TextureSampler, glSampler);
                             }
                             else
                             {
-                                glSampler = this._glSamplerCache[textureStage.TextureSampler.ResourceIndex];
+                                glSampler = this._glSamplerCache[command.TextureStages[stage].TextureSampler.ResourceIndex];
                             }
 
                             // Did the texture sampler say it's change, if so then we need to rebuild.
-                            if(textureStage.TextureSampler.Changed)
+                            if(command.TextureStages[stage].TextureSampler.Changed)
                             {
-                                glSampler.Build(textureStage.TextureSampler);
+                                glSampler.Build(command.TextureStages[stage].TextureSampler);
                             }
                         }
 
@@ -756,9 +755,7 @@ namespace Fe
                         }
                     }
 
-                    _currentState.TextureStages[stage] = textureStage;
-
-                    stage++;
+                    _currentState.TextureStages[stage] = command.TextureStages[stage];                        
                 }
 
                 // Work out what primitive topology we should be using
@@ -820,6 +817,7 @@ namespace Fe
         private const int MaxIndexBuffers = 4096;
         private const int MaxTextures = 4096;
         private const int MaxCommands = 131070;
+        internal const int MaxTextureStages = 16;
 
         private IntPtr _windowHandle; // Window handle.
         private OpenTK.Platform.IWindowInfo _windowInfo;

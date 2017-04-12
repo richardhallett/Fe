@@ -11,14 +11,12 @@ namespace Fe
     /// A command represents instructions to be used by the renderer on next pass
     /// </summary>
     public class Command
-    {
-        private const int numStages = 16;
-
+    {        
         public Command()
         {
             // Create the commands texture stage data            
-            TextureStages = new TextureStage[numStages];
-            for (int i = 0; i < numStages; i++ )
+            TextureStages = new TextureStage[Renderer.MaxTextureStages];
+            for (int i = 0; i < Renderer.MaxTextureStages; i++ )
             {
                 TextureStages[i] = new TextureStage();
             }
@@ -118,7 +116,7 @@ namespace Fe
             PrimitiveType = PrimitiveType.Triangles;
             isMatrixSet = false;
 
-            for(int stage = 0; stage < 16; stage++)
+            for(int stage = 0; stage < Renderer.MaxTextureStages; stage++)
             {
                 TextureStages[stage].Texture = null;
                 TextureStages[stage].TextureSampler = null;
