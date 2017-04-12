@@ -4,14 +4,17 @@
     <DefineConstants>TRACE;DEBUG;</DefineConstants>    
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="nml" Version="1.0.0" />
+    <PackageReference Include="nml" Version="1.0.1" />
     <PackageReference Include="OpenTK.NETCore" Version="1.1.2571.6431" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
   </ItemGroup>
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard1.4</TargetFramework>
     <DefineConstants>$(DefineConstants);RENDERER_GL</DefineConstants>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <DocumentationFile>bin\Release\netstandard1.6\Fe.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 </Project>
