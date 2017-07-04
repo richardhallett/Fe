@@ -57,6 +57,7 @@ namespace Fe.Examples.Basics
             var texturesExample = new TexturesExample();
 
             // Default example to start with
+            //runningExample = texturesExample;
             runningExample = texturesExample;
             var runningExampleIndex = 0;
 
@@ -114,7 +115,7 @@ namespace Fe.Examples.Basics
 
             canvas.MouseUp += () =>
             {
-               // ChangeExample();
+                ChangeExample();
             };
 
             canvas.Resize += () =>

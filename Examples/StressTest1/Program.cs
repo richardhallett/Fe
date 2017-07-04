@@ -184,12 +184,14 @@ namespace Fe.Examples.StressTest1
                     {
                         for (int z = 0; z < dim; z++)
                         {
+                            //var cubeCommand = geometryBucket.AddCommand<DrawIndexed>(1);
+
                             var cubeCommand = geometryBucket.AddCommand(1);
 
-                            cubeCommand.VertexShader = vertexShader;
-                            cubeCommand.FragmentShader = fragmentShader;
-                            cubeCommand.VertexBuffer = vb;
-                            cubeCommand.IndexBuffer = ib;
+                            cubeCommand.SetShader(vertexShader);
+                            cubeCommand.SetShader(fragmentShader);
+                            cubeCommand.SetVertexBuffer(vb);
+                            cubeCommand.SetIndexBuffer(ib);
 
                             Nml.Matrix4x4 cubeTransform = Nml.Matrix4x4.Identity;
 
@@ -204,7 +206,7 @@ namespace Fe.Examples.StressTest1
                             cubeTransform.M34 = initial.z + z * 0.8f;
 
                             // Slightly faster to set the transform via the individual matrix components as we can avoid a memory allocation of a temporary array.
-                            cubeCommand.SetTransformComponents(
+                            cubeCommand.SetTransform(
                                 cubeTransform.M11, cubeTransform.M12, cubeTransform.M13, cubeTransform.M14,
                                 cubeTransform.M21, cubeTransform.M22, cubeTransform.M23, cubeTransform.M24,
                                 cubeTransform.M31, cubeTransform.M32, cubeTransform.M33, cubeTransform.M34,

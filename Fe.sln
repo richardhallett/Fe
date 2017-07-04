@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.3
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fe", "Fe\Fe.csproj", "{1684CEAC-F192-488D-B133-D567FA898172}"
 EndProject
@@ -126,6 +126,15 @@ Global
 		{76EE3AF0-4D5B-48A1-8875-5D1743A1469E} = {5AEB0759-025D-47CD-A529-FF7FE61C9C49}
 		{36E425A6-C986-4BAB-9843-9F97375A1A99} = {5AEB0759-025D-47CD-A529-FF7FE61C9C49}
 		{03031738-D01B-49E3-B877-2DC286867FC9} = {5AEB0759-025D-47CD-A529-FF7FE61C9C49}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

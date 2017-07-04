@@ -257,7 +257,7 @@ namespace Fe
 
             // Default state
             //GL.FrontFace(FrontFaceDirection.Cw);
-            
+
 #endif
             // Go through each of our commands that are for this frame.
             for (int commandIndex = 0; commandIndex < this._commandCount; commandIndex++)
@@ -273,13 +273,13 @@ namespace Fe
                 {
                     viewChanged = true;
                     this._currentState.ViewId = command.ViewId;
-                    
+
                     if (!_views.TryGetValue(command.ViewId, out view))
                     {
                         //TODO: Logging to say we failed loading a command specific view
                         view = _defaultView;
                     }
-                    
+
                     ResetViewPort(view);
                 }
 
@@ -291,13 +291,41 @@ namespace Fe
                 //    continue;
                 //}
 
+                if ((command.Instructions & (CommandInstructions.SetFragmentShader | CommandInstructions.SetVertexShader)) != CommandInstructions.None)
+                {
+                    if (command.VertexShader != _currentState.VertexShader ||
+                   command.FragmentShader != _currentState.FragmentShader)
+                    {
+                        // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
+                        if (command.ShaderProgram == null)
+                        {
+                            command.ShaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
+                        }
+
+                        _currentState.VertexShader = command.VertexShader;
+                        _currentState.FragmentShader = command.FragmentShader;
+                    }
+                    else
+                    {
+                        command.ShaderProgram = _currentState.ShaderProgram;
+                    }
+
+                    command.Instructions |= CommandInstructions.SetShaderProgram;
+                }
+
+                if (!command.Instructions.HasFlag(CommandInstructions.SetShaderProgram))
+                {
+                    continue;
+                }
+
                 GLShader vertexShader;
                 if (!command.VertexShader.Created)
                 {
                     // Build a OpenGL shader from our commands vertex shader data.
                     vertexShader = new GLShader(command.VertexShader);
                     this._glShaderCache.Add(command.VertexShader, vertexShader);
-                } else
+                }
+                else
                 {
                     vertexShader = this._glShaderCache[command.VertexShader.ResourceIndex];
                 }
@@ -312,23 +340,8 @@ namespace Fe
                 else
                 {
                     fragmentShader = this._glShaderCache[command.FragmentShader.ResourceIndex];
-                }                
+                }
 
-                if(command.VertexShader != _currentState.VertexShader ||
-                   command.FragmentShader != _currentState.FragmentShader)
-                {
-                    // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
-                    if (command.ShaderProgram == null)
-                    {
-                        command.ShaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
-                    }
-                    
-                    _currentState.VertexShader = command.VertexShader;
-                    _currentState.FragmentShader = command.FragmentShader;                    
-                } else
-                {
-                    command.ShaderProgram = _currentState.ShaderProgram;
-                }             
 
                 // Build Shader Program as appropriate     
                 GLShaderProgram program;
@@ -342,137 +355,150 @@ namespace Fe
                 else
                 {
                     program = this._glProgramCache[command.ShaderProgram.ResourceIndex];
-                }              
+                }
 
                 // Set default blend state for anything that doesn't have one explicitly set.
-                if(command.BlendState == null)
+                if (command.Instructions.HasFlag(CommandInstructions.SetBlendState))
                 {
-                    command.BlendState = _defaultBlendState;
-                }
-
-                // Is the blend state different if so we need to set it.
-                if (command.BlendState != this._currentState.BlendState)
-                {
-                    this._currentState.BlendState = command.BlendState;
-                    var bs = command.BlendState;
-                    
-                    if (bs.EnableBlending)
+                    if (command.BlendState == null)
                     {
-                        GL.Enable(EnableCap.Blend);
+                        command.BlendState = _defaultBlendState;
+                    }
 
-                        var colourOp = glBlendOperationMapping[bs.ColourOperation];
-                        var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
+                    // Is the blend state different if so we need to set it.
+                    if (command.BlendState != this._currentState.BlendState)
+                    {
+                        this._currentState.BlendState = command.BlendState;
+                        var bs = command.BlendState;
 
-                        GL.BlendEquationSeparate(colourOp, alphaOp);
-
-                        var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
-                        var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
-                        var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
-                        var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
-
-                        GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
-
-                        if(bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
+                        if (bs.EnableBlending)
                         {
-                            GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
-                                          bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
+                            GL.Enable(EnableCap.Blend);
+
+                            var colourOp = glBlendOperationMapping[bs.ColourOperation];
+                            var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
+
+                            GL.BlendEquationSeparate(colourOp, alphaOp);
+
+                            var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
+                            var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
+                            var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
+                            var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
+
+                            GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
+
+                            if (bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
+                            {
+                                GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
+                                              bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
+                            }
                         }
-                    } else
-                    {
-                        GL.Disable(EnableCap.Blend);
+                        else
+                        {
+                            GL.Disable(EnableCap.Blend);
+                        }
                     }
                 }
 
-                // Set default depth state for anything that doesn't have one explicitly set.
-                if (command.DepthState == null)
+                if (command.Instructions.HasFlag(CommandInstructions.SetDepthState))
                 {
-                    command.DepthState = _defaultDepthState;
+                    // Set default depth state for anything that doesn't have one explicitly set.
+                    if (command.DepthState == null)
+                    {
+                        command.DepthState = _defaultDepthState;
+                    }
+
+                    // Is the depth state different if so we need to set it.
+                    if (command.DepthState != this._currentState.DepthState)
+                    {
+                        this._currentState.DepthState = command.DepthState;
+                        var ds = command.DepthState;
+
+                        // Depth Test
+                        if (ds.EnableDepthTest)
+                        {
+                            GL.Enable(EnableCap.DepthTest);
+                            var df = glDepthFuncMapping[ds.DepthFunc];
+
+                            GL.DepthFunc(df);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.DepthTest);
+                        }
+
+                        // Depth write
+                        if (ds.EnableDepthWrite)
+                        {
+                            GL.DepthMask(true);
+                        }
+                        else
+                        {
+                            GL.DepthMask(false);
+                        }
+                    }
                 }
 
-                // Is the depth state different if so we need to set it.
-                if (command.DepthState != this._currentState.DepthState)
+                if (command.Instructions.HasFlag(CommandInstructions.SetRasteriserState))
                 {
-                    this._currentState.DepthState = command.DepthState;
-                    var ds = command.DepthState;
-
-                    // Depth Test
-                    if (ds.EnableDepthTest)
+                    // Set default rasteriser state for anything that doesn't have one explicitly set.
+                    if (command.RasteriserState == null)
                     {
-                        GL.Enable(EnableCap.DepthTest);
-                        var df = glDepthFuncMapping[ds.DepthFunc];
-
-                        GL.DepthFunc(df);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.DepthTest);
+                        command.RasteriserState = _defaultRasteriserState;
                     }
 
-                    // Depth write
-                    if (ds.EnableDepthWrite)
+                    // Is the rasteriser state different if so we need to set it.
+                    if (command.RasteriserState != this._currentState.RasteriserState)
                     {
-                        GL.DepthMask(true);
-                    }
-                    else
-                    {
-                        GL.DepthMask(false);
-                    }
-                }
+                        this._currentState.RasteriserState = command.RasteriserState;
+                        var rs = command.RasteriserState;
 
-                // Set default rasteriser state for anything that doesn't have one explicitly set.
-                if (command.RasteriserState == null)
-                {
-                    command.RasteriserState = _defaultRasteriserState;
-                }
+                        // Cull mode
+                        if (rs.CullMode == CullMode.Clockwise)
+                        {
+                            GL.Enable(EnableCap.CullFace);
+                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
+                        }
+                        else if (rs.CullMode == CullMode.CounterClockwise)
+                        {
+                            GL.Enable(EnableCap.CullFace);
+                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.CullFace);
+                        }
 
-                // Is the rasteriser state different if so we need to set it.
-                if (command.RasteriserState != this._currentState.RasteriserState)
-                {
-                    this._currentState.RasteriserState = command.RasteriserState;
-                    var rs = command.RasteriserState;
-
-                    // Cull mode
-                    if (rs.CullMode == CullMode.Clockwise)
-                    {
-                        GL.Enable(EnableCap.CullFace);
-                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
-                    }
-                    else if (rs.CullMode == CullMode.CounterClockwise)
-                    {
-                        GL.Enable(EnableCap.CullFace);
-                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.CullFace);
-                    }
-
-                    // Multisampling
-                    if (rs.EnableMultisampling)
-                    {
-                        GL.Enable(EnableCap.Multisample);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.Multisample);
+                        // Multisampling
+                        if (rs.EnableMultisampling)
+                        {
+                            GL.Enable(EnableCap.Multisample);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.Multisample);
+                        }
                     }
                 }
 
-                bool sharedUniformsChanged = false;
-                // Different uniform to current state then we'll need to rebind whatever the new ones are.
-                if (command.SharedUniforms != null && command.SharedUniforms != this._currentState.SharedUniforms)
-                {
-                    this._currentState.SharedUniforms = command.SharedUniforms;
-                    sharedUniformsChanged = true;
-                }
-
-                // Do we need to change the state for the current active program.
                 bool programChanged = false;
+                bool sharedUniformsChanged = false;
+                if (command.Instructions.HasFlag(CommandInstructions.SetSharedUniforms))
+                {
+                    // Different uniform to current state then we'll need to rebind whatever the new ones are.
+                    if (command.SharedUniforms != null && command.SharedUniforms != this._currentState.SharedUniforms)
+                    {
+                        this._currentState.SharedUniforms = command.SharedUniforms;
+                        sharedUniformsChanged = true;
+                    }
+                }
+
+                // Do we need to change the state for the current active program.                    
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
                 {
                     this._currentState.ShaderProgram = command.ShaderProgram;
 
-                    GL.UseProgram(program.ProgramRef);                  
+                    GL.UseProgram(program.ProgramRef);
 
                     // Predefined locations
                     int uniformLocation;
@@ -485,98 +511,108 @@ namespace Fe
                     // View transform
                     if (program.Uniforms.TryGetValue("_view", out uniformLocation))
                     {
-                        this.predefinedViewUniformLocation = uniformLocation;                        
+                        this.predefinedViewUniformLocation = uniformLocation;
                     }
 
                     // Projection transform
                     if (program.Uniforms.TryGetValue("_projection", out uniformLocation))
                     {
-                        this.predefinedProjectionUniformLocation = uniformLocation;                        
+                        this.predefinedProjectionUniformLocation = uniformLocation;
                     }
 
                     // Program changed, so we'll need to change the uniforms.
                     sharedUniformsChanged = true;
                     programChanged = true;
                 }
+                
 
                 // Build Vertex Buffer as appropriate
                 GLBuffer vb = null;
-                if (command.VertexBuffer != null)
+                if (command.Instructions.HasFlag(CommandInstructions.SetVertexBuffer))
                 {
-                    // Have we already loaded and cached a vertex buffer
-                    if (!command.VertexBuffer.Created)
+                    if (command.VertexBuffer != null)
                     {
-                        vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
-                        vb.Create(command.VertexBuffer.DataType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
-                        this._glVBCache.Add(command.VertexBuffer, vb);
-                    }
-                    else
-                    {
-                        vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
-                    }
+                        // Have we already loaded and cached a vertex buffer
+                        if (!command.VertexBuffer.Created)
+                        {
+                            vb = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer);
+                            vb.Create(command.VertexBuffer.DataType, command.VertexBuffer.Size, command.VertexBuffer.Data, command.VertexBuffer.Dynamic);
+                            this._glVBCache.Add(command.VertexBuffer, vb);
+                        }
+                        else
+                        {
+                            vb = this._glVBCache[command.VertexBuffer.ResourceIndex];
+                        }
 
-                    // Do we need to update the vertex buffer data
-                    if (command.VertexBuffer.Changed)
-                    {
-                        vb.Update(command.VertexBuffer.Data, 0);
-                        command.VertexBuffer.Changed = false;
+                        // Do we need to update the vertex buffer data
+                        if (command.VertexBuffer.Changed)
+                        {
+                            vb.Update(command.VertexBuffer.Data, 0);
+                            command.VertexBuffer.Changed = false;
+                        }
                     }
                 }
 
                 // Build Index Buffer as appropriate
                 GLBuffer ib = null;
-                if (command.IndexBuffer != null)
+                if (command.Instructions.HasFlag(CommandInstructions.SetIndexBuffer))
                 {
-                    // Have we already loaded and cached a vertex buffer
-                    if (!command.IndexBuffer.Created)
+                    if (command.IndexBuffer != null)
                     {
-                        ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
-                        ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
-                        this._glIBCache.Add(command.IndexBuffer, ib);
-                    }
-                    else
-                    {
-                        ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
-                    }
+                        // Have we already loaded and cached a vertex buffer
+                        if (!command.IndexBuffer.Created)
+                        {
+                            ib = new GLBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ElementArrayBuffer);
+                            ib.Create(typeof(uint), command.IndexBuffer.Size, command.IndexBuffer.Data, command.IndexBuffer.Dynamic);
+                            this._glIBCache.Add(command.IndexBuffer, ib);
+                        }
+                        else
+                        {
+                            ib = this._glIBCache[command.IndexBuffer.ResourceIndex];
+                        }
 
-                    // Do we need to update the index buffer data
-                    if (command.IndexBuffer.Changed)
-                    {
-                        ib.Update(command.IndexBuffer.Data, 0);
-                        command.IndexBuffer.Changed = false;
+                        // Do we need to update the index buffer data
+                        if (command.IndexBuffer.Changed)
+                        {
+                            ib.Update(command.IndexBuffer.Data, 0);
+                            command.IndexBuffer.Changed = false;
+                        }
                     }
                 }
 
-                if (programChanged || command.VertexBuffer != _currentState.VertexBuffer || command.IndexBuffer != _currentState.IndexBuffer)
+                if ((command.Instructions & (CommandInstructions.SetVertexBuffer | CommandInstructions.SetIndexBuffer)) != CommandInstructions.None)
                 {
-                    _currentState.VertexBuffer = command.VertexBuffer;
-                    _currentState.IndexBuffer = command.IndexBuffer;
-
-                    // Bind the vertex buffer
-                    if (vb != null)
+                    if (programChanged || command.VertexBuffer != _currentState.VertexBuffer || command.IndexBuffer != _currentState.IndexBuffer)
                     {
-                        GL.BindBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer, vb.BufferId);
+                        _currentState.VertexBuffer = command.VertexBuffer;
+                        _currentState.IndexBuffer = command.IndexBuffer;
 
-                        uint index = 0;
-
-                        // Bind attributes that are defined for the vertex buffer
-                        var type = Activator.CreateInstance(command.VertexBuffer.DataType) as IVertex;
-                        foreach (var attribute in type.VertexDeclaration.Attributes)
+                        // Bind the vertex buffer
+                        if (vb != null)
                         {
-                            VertexAttribPointerType glAttribType;
-                            Renderer.glAttribMapping.TryGetValue(attribute.Type, out glAttribType);
+                            GL.BindBuffer(OpenTK.Graphics.OpenGL.BufferTarget.ArrayBuffer, vb.BufferId);
 
-                            GL.EnableVertexAttribArray(index);
-                            GL.VertexAttribPointer(index, attribute.Size, glAttribType, attribute.Normalised, type.VertexDeclaration.Stride, new IntPtr(type.VertexDeclaration.Offsets[attribute.Name]));
+                            uint index = 0;
 
-                            index += 1;
+                            // Bind attributes that are defined for the vertex buffer
+                            var type = Activator.CreateInstance(command.VertexBuffer.DataType) as IVertex;
+                            foreach (var attribute in type.VertexDeclaration.Attributes)
+                            {
+                                VertexAttribPointerType glAttribType;
+                                Renderer.glAttribMapping.TryGetValue(attribute.Type, out glAttribType);
+
+                                GL.EnableVertexAttribArray(index);
+                                GL.VertexAttribPointer(index, attribute.Size, glAttribType, attribute.Normalised, type.VertexDeclaration.Stride, new IntPtr(type.VertexDeclaration.Offsets[attribute.Name]));
+
+                                index += 1;
+                            }
                         }
-                    }
 
-                    // Bind the Index Buffer
-                    if (ib != null)
-                    {
-                        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ib.BufferId);
+                        // Bind the Index Buffer
+                        if (ib != null)
+                        {
+                            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ib.BufferId);
+                        }
                     }
                 }
 
@@ -585,7 +621,7 @@ namespace Fe
                 {
                     // View transform
                     if (predefinedViewUniformLocation != -1)
-                    {                        
+                    {
                         unsafe
                         {
                             var viewMatrix = view.ViewMatrix;
@@ -598,7 +634,7 @@ namespace Fe
 
                     // Projection transform
                     if (predefinedProjectionUniformLocation != -1)
-                    {                        
+                    {
                         unsafe
                         {
                             var projectionMatrix = view.ProjectionMatrix;
@@ -610,50 +646,53 @@ namespace Fe
                     }
                 }
 
-                // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
-                if (command.SharedUniforms != null && sharedUniformsChanged)
+                if (command.Instructions.HasFlag(CommandInstructions.SetSharedUniforms))
                 {
-                    int uniformLocation;                    
-                    foreach (var uniform in command.SharedUniforms._uniforms)
+                    // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
+                    if (command.SharedUniforms != null && sharedUniformsChanged)
                     {
-                        if (program.Uniforms.TryGetValue(uniform.Key.Name, out uniformLocation))
+                        int uniformLocation;
+                        foreach (var uniform in command.SharedUniforms._uniforms)
                         {
-                            if (uniform.Key.Type == UniformType.Matrix4x4f)
+                            if (program.Uniforms.TryGetValue(uniform.Key.Name, out uniformLocation))
                             {
-                                var matrix = (float[])uniform.Value;
-                                unsafe
+                                if (uniform.Key.Type == UniformType.Matrix4x4f)
                                 {
-                                    fixed (float* matrix_ptr = &matrix[0])
+                                    var matrix = (float[])uniform.Value;
+                                    unsafe
                                     {
-                                        GL.UniformMatrix4(uniformLocation, 1, false, matrix_ptr);
+                                        fixed (float* matrix_ptr = &matrix[0])
+                                        {
+                                            GL.UniformMatrix4(uniformLocation, 1, false, matrix_ptr);
+                                        }
                                     }
                                 }
-                            }
-                            else if (uniform.Key.Type == UniformType.Uniform1f)
-                            {
-                                GL.Uniform1(uniformLocation, (float)uniform.Value);
-                            }
-                            else if (uniform.Key.Type == UniformType.Uniform2f)
-                            {
-                                float[] value = uniform.Value as float[];
-                                GL.Uniform2(uniformLocation, value[0], value[1]);
-                            }
-                            else if (uniform.Key.Type == UniformType.Uniform3f)
-                            {
-                                float[] value = uniform.Value as float[];
-                                GL.Uniform3(uniformLocation, value[0], value[1], value[2]);
-                            }
-                            else if (uniform.Key.Type == UniformType.Uniform4f)
-                            {
-                                float[] value = uniform.Value as float[];
-                                GL.Uniform4(uniformLocation, value[0], value[1], value[2], value[3]);
+                                else if (uniform.Key.Type == UniformType.Uniform1f)
+                                {
+                                    GL.Uniform1(uniformLocation, (float)uniform.Value);
+                                }
+                                else if (uniform.Key.Type == UniformType.Uniform2f)
+                                {
+                                    float[] value = uniform.Value as float[];
+                                    GL.Uniform2(uniformLocation, value[0], value[1]);
+                                }
+                                else if (uniform.Key.Type == UniformType.Uniform3f)
+                                {
+                                    float[] value = uniform.Value as float[];
+                                    GL.Uniform3(uniformLocation, value[0], value[1], value[2]);
+                                }
+                                else if (uniform.Key.Type == UniformType.Uniform4f)
+                                {
+                                    float[] value = uniform.Value as float[];
+                                    GL.Uniform4(uniformLocation, value[0], value[1], value[2], value[3]);
+                                }
                             }
                         }
                     }
-                }                
+                }
 
                 // Per command transform                
-                if (this.predefinedModelUniformLocation != -1 && command.isMatrixSet)
+                if (this.predefinedModelUniformLocation != -1 && command.Instructions.HasFlag(CommandInstructions.SetTransform))
                 {                    
                     unsafe
                     {
@@ -667,103 +706,113 @@ namespace Fe
                 // Texture bindings                
                 GLTexture glTexture;
                 GLSampler glSampler;
-                for (int stage = 0; stage < MaxTextureStages; stage++)
-                {                    
-                    var currentTextureStage = _currentState.TextureStages[stage];
-
-                    // Has a texture or a uniform changed, if so we need to potentially rebuild / rebind
-                    if (programChanged 
-                        || command.TextureStages[stage].Texture != currentTextureStage.Texture
-                        || command.TextureStages[stage].TextureUniform != currentTextureStage.TextureUniform)
+                if ((command.Instructions & CommandInstructions.SetTextureAll) != CommandInstructions.None)
+                {
+                    for (int stage = 0; stage < MaxTextureStages; stage++)
                     {
-                        // Build Textures if required
-                        glTexture = null;
-                        if (command.TextureStages[stage].Texture != null)
+                        var textureStageEnum = (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"Texture{stage}");
+                        if (command.Instructions.HasFlag(textureStageEnum))
                         {
-                            // Have we already loaded and cached a texture
-                            if (!command.TextureStages[stage].Texture.Created)
+                            var currentTextureStage = _currentState.TextureStages[stage];
+
+                            // Has a texture or a uniform changed, if so we need to potentially rebuild / rebind
+                            if (programChanged
+                                || command.TextureStages[stage].Texture != currentTextureStage.Texture
+                                || command.TextureStages[stage].TextureUniform != currentTextureStage.TextureUniform)
                             {
-                                glTexture = new GLTexture();
-                                glTexture.Create(command.TextureStages[stage].Texture);
-                                this._glTextureCache.Add(command.TextureStages[stage].Texture, glTexture);
-                            }
-                            else
-                            {
-                                glTexture = this._glTextureCache[command.TextureStages[stage].Texture.ResourceIndex];
+                                // Build Textures if required
+                                glTexture = null;
+                                if (command.TextureStages[stage].Texture != null)
+                                {
+                                    // Have we already loaded and cached a texture
+                                    if (!command.TextureStages[stage].Texture.Created)
+                                    {
+                                        glTexture = new GLTexture();
+                                        glTexture.Create(command.TextureStages[stage].Texture);
+                                        this._glTextureCache.Add(command.TextureStages[stage].Texture, glTexture);
+                                    }
+                                    else
+                                    {
+                                        glTexture = this._glTextureCache[command.TextureStages[stage].Texture.ResourceIndex];
+                                    }
+
+                                    // If a texture has changed re-create it.
+                                    if (command.TextureStages[stage].Texture.Changed)
+                                    {
+                                        glTexture.Build(command.TextureStages[stage].Texture);
+                                    }
+                                }
+
+                                // We must have a valid gl texture and a texture uniform defined before we can continue.
+                                if (glTexture != null && command.TextureStages[stage].TextureUniform != null)
+                                {
+                                    // Activate the texture based upon which texture stage we're in.
+                                    GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{stage}"));
+                                    glTexture.Bind();
+
+                                    // Bind the texture sample uniform to the correct stage                            
+                                    int uniformLocation;
+                                    if (program.Uniforms.TryGetValue(command.TextureStages[stage].TextureUniform.Name, out uniformLocation))
+                                    {
+                                        GL.Uniform1(uniformLocation, stage);
+                                    }
+                                }
                             }
 
-                            // If a texture has changed re-create it.
-                            if (command.TextureStages[stage].Texture.Changed)
+                            // Always ensure we have a texture sampler.
+                            if (command.TextureStages[stage].TextureSampler == null)
                             {
-                                glTexture.Build(command.TextureStages[stage].Texture);
+                                command.TextureStages[stage].TextureSampler = _defaultTextureSampler;
                             }
+
+                            // If a texture sampler has changed then we are free to rebind this at any time regardless of what texture currently bound.
+                            if (programChanged
+                                || command.TextureStages[stage].TextureSampler != currentTextureStage.TextureSampler)
+                            {
+                                // Build a texture sample object if we need to
+                                glSampler = null;
+                                if (command.TextureStages[stage].TextureSampler != null)
+                                {
+                                    // Have we already loaded and cached a texture
+                                    if (!command.TextureStages[stage].TextureSampler.Created)
+                                    {
+                                        glSampler = new GLSampler();
+                                        glSampler.Create(command.TextureStages[stage].TextureSampler);
+                                        this._glSamplerCache.Add(command.TextureStages[stage].TextureSampler, glSampler);
+                                    }
+                                    else
+                                    {
+                                        glSampler = this._glSamplerCache[command.TextureStages[stage].TextureSampler.ResourceIndex];
+                                    }
+
+                                    // Did the texture sampler say it's change, if so then we need to rebuild.
+                                    if (command.TextureStages[stage].TextureSampler.Changed)
+                                    {
+                                        glSampler.Build(command.TextureStages[stage].TextureSampler);
+                                    }
+                                }
+
+                                // Bind the sampler to the texture stage we're working with.
+                                if (glSampler != null)
+                                {
+                                    GL.BindSampler(stage, glSampler.SamplerRef);
+                                }
+                            }
+
+                            _currentState.TextureStages[stage] = command.TextureStages[stage];
                         }
-
-                        // We must have a valid gl texture and a texture uniform defined before we can continue.
-                        if (glTexture != null && command.TextureStages[stage].TextureUniform != null)
-                        {
-                            // Activate the texture based upon which texture stage we're in.
-                            GL.ActiveTexture((TextureUnit)Enum.Parse(typeof(TextureUnit), $"Texture{stage}"));
-                            glTexture.Bind();
-
-                            // Bind the texture sample uniform to the correct stage                            
-                            int uniformLocation;
-                            if (program.Uniforms.TryGetValue(command.TextureStages[stage].TextureUniform.Name, out uniformLocation))
-                            {
-                                GL.Uniform1(uniformLocation, stage);
-                            }
-                        }                   
                     }
-
-                    // Always ensure we have a texture sampler.
-                    if (command.TextureStages[stage].TextureSampler == null)
-                    {
-                        command.TextureStages[stage].TextureSampler = _defaultTextureSampler;
-                    }
-
-                    // If a texture sampler has changed then we are free to rebind this at any time regardless of what texture currently bound.
-                    if (programChanged
-                        || command.TextureStages[stage].TextureSampler != currentTextureStage.TextureSampler)
-                    {                       
-                        // Build a texture sample object if we need to
-                        glSampler = null;
-                        if (command.TextureStages[stage].TextureSampler != null)
-                        {
-                            // Have we already loaded and cached a texture
-                            if (!command.TextureStages[stage].TextureSampler.Created)
-                            {
-                                glSampler = new GLSampler();
-                                glSampler.Create(command.TextureStages[stage].TextureSampler);
-                                this._glSamplerCache.Add(command.TextureStages[stage].TextureSampler, glSampler);
-                            }
-                            else
-                            {
-                                glSampler = this._glSamplerCache[command.TextureStages[stage].TextureSampler.ResourceIndex];
-                            }
-
-                            // Did the texture sampler say it's change, if so then we need to rebuild.
-                            if(command.TextureStages[stage].TextureSampler.Changed)
-                            {
-                                glSampler.Build(command.TextureStages[stage].TextureSampler);
-                            }
-                        }
-
-                        // Bind the sampler to the texture stage we're working with.
-                        if (glSampler != null)
-                        {
-                            GL.BindSampler(stage, glSampler.SamplerRef);
-                        }
-                    }
-
-                    _currentState.TextureStages[stage] = command.TextureStages[stage];                        
                 }
 
                 // Work out what primitive topology we should be using
                 OpenTK.Graphics.OpenGL.PrimitiveType primType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
-                if (command.PrimitiveType != _currentState.PrimitiveType)
+                if (command.Instructions.HasFlag(CommandInstructions.SetPrimitiveType))
                 {
-                    _currentState.PrimitiveType = command.PrimitiveType;
-                    primType = glPrimitiveTypeMapping[command.PrimitiveType];
+                    if (command.PrimitiveType != _currentState.PrimitiveType)
+                    {
+                        _currentState.PrimitiveType = command.PrimitiveType;
+                        primType = glPrimitiveTypeMapping[command.PrimitiveType];
+                    }
                 }
                 
                 // Lets draw!

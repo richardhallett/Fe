@@ -138,22 +138,22 @@ namespace Fe.Examples.SplitScreen
                 for (int i = 0; i < 5; i++ )
                 {
                     var cubeCommand = view1Bucket.AddCommand(1);
-                    cubeCommand.VertexShader = vertexShader;
-                    cubeCommand.FragmentShader = fragmentShader;
-                    cubeCommand.VertexBuffer = vb;
-                    cubeCommand.IndexBuffer = ib;
-                    
+                    cubeCommand.SetShader(vertexShader);
+                    cubeCommand.SetShader(fragmentShader);
+                    cubeCommand.SetVertexBuffer(vb);
+                    cubeCommand.SetIndexBuffer(ib);
+
                     // Spin one way
-                    cubeCommand.Transform = (Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f)).ToArray();
+                    cubeCommand.SetTransform((Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f)).ToArray());
 
                     var cubeCommand2 = view2Bucket.AddCommand(1);
-                    cubeCommand2.VertexShader = vertexShader;
-                    cubeCommand2.FragmentShader = fragmentShader;
-                    cubeCommand2.VertexBuffer = vb;
-                    cubeCommand2.IndexBuffer = ib;
+                    cubeCommand2.SetShader(vertexShader);
+                    cubeCommand2.SetShader(fragmentShader);
+                    cubeCommand2.SetVertexBuffer(vb);
+                    cubeCommand2.SetIndexBuffer(ib);
 
                     // Spin the other way
-                    cubeCommand2.Transform = (Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f)).ToArray();
+                    cubeCommand2.SetTransform((Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(-rotY + i * 0.32f)).ToArray());
                      
                 }                
                 

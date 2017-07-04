@@ -70,16 +70,14 @@ namespace Fe.Examples.Basics
         {
             var cube = commandBucket.AddCommand(2);
 
-            cube.VertexShader = exampleData.DefaultVertexShader;
-            cube.FragmentShader = exampleData.DefaultFragmentShader;
-            cube.VertexBuffer = _vb;
-            cube.IndexBuffer = _ib;
-            cube.SharedUniforms = _ub;
-            cube.TextureStages[0].Texture = texture;
-            cube.TextureStages[0].TextureUniform = colourMapUniform;
-            cube.TextureStages[0].TextureSampler = textureSampler;
-
-            cube.Transform = (Nml.Matrix4x4.Translate(new Nml.Vector3(z: -1.0f)) * Nml.Matrix4x4.RotateY(-0.5f)).ToArray();
+            cube.SetShader(exampleData.DefaultVertexShader);
+            cube.SetShader(exampleData.DefaultFragmentShader);
+            cube.SetVertexBuffer(_vb);
+            cube.SetIndexBuffer(_ib);
+            cube.SetSharedUniforms(_ub);
+            cube.SetTexture(0, texture, colourMapUniform, textureSampler);
+            
+            cube.SetTransform((Nml.Matrix4x4.Translate(new Nml.Vector3(z: -1.0f)) * Nml.Matrix4x4.RotateY(-0.5f)).ToArray());
         }
 
         private VertexBuffer<PosNormalTexCoordVertex> _vb;

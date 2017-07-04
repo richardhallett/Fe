@@ -129,12 +129,12 @@ namespace Fe.Examples.Dynamic
 
                 var cubeCommand = geometryBucket.AddCommand(1);
 
-                cubeCommand.VertexShader = vertexShader;
-                cubeCommand.FragmentShader = fragmentShader;
-                cubeCommand.VertexBuffer = vb;
-                cubeCommand.IndexBuffer = ib;
-                cubeCommand.SharedUniforms = sharedUniforms;
-                cubeCommand.RasteriserState = rs;
+                cubeCommand.SetShader(vertexShader);
+                cubeCommand.SetShader(fragmentShader);
+                cubeCommand.SetVertexBuffer(vb);
+                cubeCommand.SetIndexBuffer(ib);
+                cubeCommand.SetSharedUniforms(sharedUniforms);
+                cubeCommand.SetRasteriserState(rs);
 
                 // Generate new vertice positionsd
                 for (i = 0; i < vertices.Length; i++)
@@ -152,7 +152,7 @@ namespace Fe.Examples.Dynamic
                 Nml.Quaternion.RotateEuler(0, rotTime * 0.37f, rotTime * 0.13f, out rotQuat);
                 Nml.Quaternion.GetMatrix4x4(ref rotQuat, out planeTransform);
 
-                cubeCommand.Transform = planeTransform.ToArray();
+                cubeCommand.SetTransform(planeTransform.ToArray());
 
                 // Submit current commands queued to the renderer for rendering.
                 renderer.EndFrame();

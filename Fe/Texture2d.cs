@@ -82,8 +82,6 @@ namespace Fe
             }
         }
 
-        private List<T> _vertices;
-
         private T[] _data;
     }
 }

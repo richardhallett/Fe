@@ -60,7 +60,7 @@ namespace Fe
 
             // Reset the data in a command for reuse
             command.Reset();
-            
+
             // View is the one the bucket belongs to
             command.ViewId = ViewId;
             
