@@ -115,19 +115,16 @@ namespace Fe
         public void SetBlendState(BlendState state)
         {
             BlendState = state;
-            Instructions |= CommandInstructions.SetBlendState;
         }
 
         public void SetDepthState(DepthState state)
         {
             DepthState = state;
-            Instructions |= CommandInstructions.SetDepthState;
         }
 
         public void SetRasteriserState(RasteriserState state)
         {
             RasteriserState = state;
-            Instructions |= CommandInstructions.SetRasteriserState;
         }
 
         public void SetSharedUniforms(UniformBuffer uniforms)
