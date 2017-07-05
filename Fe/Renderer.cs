@@ -358,126 +358,117 @@ namespace Fe
                 }
 
                 // Set default blend state for anything that doesn't have one explicitly set.
-                if ((command.Instructions & CommandInstructions.SetBlendState) != CommandInstructions.None)
-                    {
-                    if (command.BlendState == null)
-                    {
-                        command.BlendState = _defaultBlendState;
-                    }
-
-                    // Is the blend state different if so we need to set it.
-                    if (command.BlendState != this._currentState.BlendState)
-                    {
-                        this._currentState.BlendState = command.BlendState;
-                        var bs = command.BlendState;
-
-                        if (bs.EnableBlending)
-                        {
-                            GL.Enable(EnableCap.Blend);
-
-                            var colourOp = glBlendOperationMapping[bs.ColourOperation];
-                            var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
-
-                            GL.BlendEquationSeparate(colourOp, alphaOp);
-
-                            var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
-                            var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
-                            var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
-                            var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
-
-                            GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
-
-                            if (bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
-                            {
-                                GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
-                                              bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
-                            }
-                        }
-                        else
-                        {
-                            GL.Disable(EnableCap.Blend);
-                        }
-                    }
+                if (command.BlendState == null)
+                {
+                    command.BlendState = _defaultBlendState;
                 }
 
-                if ((command.Instructions & CommandInstructions.SetDepthState) != CommandInstructions.None)
+                // Is the blend state different if so we need to set it.
+                if (command.BlendState != this._currentState.BlendState)
                 {
-                    // Set default depth state for anything that doesn't have one explicitly set.
-                    if (command.DepthState == null)
+                    this._currentState.BlendState = command.BlendState;
+                    var bs = command.BlendState;
+
+                    if (bs.EnableBlending)
                     {
-                        command.DepthState = _defaultDepthState;
+                        GL.Enable(EnableCap.Blend);
+
+                        var colourOp = glBlendOperationMapping[bs.ColourOperation];
+                        var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
+
+                        GL.BlendEquationSeparate(colourOp, alphaOp);
+
+                        var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
+                        var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
+                        var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
+                        var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
+
+                        GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
+
+                        if (bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
+                        {
+                            GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
+                                            bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
+                        }
                     }
-
-                    // Is the depth state different if so we need to set it.
-                    if (command.DepthState != this._currentState.DepthState)
+                    else
                     {
-                        this._currentState.DepthState = command.DepthState;
-                        var ds = command.DepthState;
-
-                        // Depth Test
-                        if (ds.EnableDepthTest)
-                        {
-                            GL.Enable(EnableCap.DepthTest);
-                            var df = glDepthFuncMapping[ds.DepthFunc];
-
-                            GL.DepthFunc(df);
-                        }
-                        else
-                        {
-                            GL.Disable(EnableCap.DepthTest);
-                        }
-
-                        // Depth write
-                        if (ds.EnableDepthWrite)
-                        {
-                            GL.DepthMask(true);
-                        }
-                        else
-                        {
-                            GL.DepthMask(false);
-                        }
+                        GL.Disable(EnableCap.Blend);
                     }
                 }
-
-                if ((command.Instructions & CommandInstructions.SetRasteriserState) != CommandInstructions.None)
+                
+                // Set default depth state for anything that doesn't have one explicitly set.
+                if (command.DepthState == null)
                 {
-                    // Set default rasteriser state for anything that doesn't have one explicitly set.
-                    if (command.RasteriserState == null)
+                    command.DepthState = _defaultDepthState;
+                }
+
+                // Is the depth state different if so we need to set it.
+                if (command.DepthState != this._currentState.DepthState)
+                {
+                    this._currentState.DepthState = command.DepthState;
+                    var ds = command.DepthState;
+
+                    // Depth Test
+                    if (ds.EnableDepthTest)
                     {
-                        command.RasteriserState = _defaultRasteriserState;
+                        GL.Enable(EnableCap.DepthTest);
+                        var df = glDepthFuncMapping[ds.DepthFunc];
+
+                        GL.DepthFunc(df);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.DepthTest);
                     }
 
-                    // Is the rasteriser state different if so we need to set it.
-                    if (command.RasteriserState != this._currentState.RasteriserState)
+                    // Depth write
+                    if (ds.EnableDepthWrite)
                     {
-                        this._currentState.RasteriserState = command.RasteriserState;
-                        var rs = command.RasteriserState;
+                        GL.DepthMask(true);
+                    }
+                    else
+                    {
+                        GL.DepthMask(false);
+                    }
+                }
+                
+                // Set default rasteriser state for anything that doesn't have one explicitly set.
+                if (command.RasteriserState == null)
+                {
+                    command.RasteriserState = _defaultRasteriserState;
+                }
 
-                        // Cull mode
-                        if (rs.CullMode == CullMode.Clockwise)
-                        {
-                            GL.Enable(EnableCap.CullFace);
-                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
-                        }
-                        else if (rs.CullMode == CullMode.CounterClockwise)
-                        {
-                            GL.Enable(EnableCap.CullFace);
-                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
-                        }
-                        else
-                        {
-                            GL.Disable(EnableCap.CullFace);
-                        }
+                // Is the rasteriser state different if so we need to set it.
+                if (command.RasteriserState != this._currentState.RasteriserState)
+                {
+                    this._currentState.RasteriserState = command.RasteriserState;
+                    var rs = command.RasteriserState;
 
-                        // Multisampling
-                        if (rs.EnableMultisampling)
-                        {
-                            GL.Enable(EnableCap.Multisample);
-                        }
-                        else
-                        {
-                            GL.Disable(EnableCap.Multisample);
-                        }
+                    // Cull mode
+                    if (rs.CullMode == CullMode.Clockwise)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
+                    }
+                    else if (rs.CullMode == CullMode.CounterClockwise)
+                    {
+                        GL.Enable(EnableCap.CullFace);
+                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.CullFace);
+                    }
+
+                    // Multisampling
+                    if (rs.EnableMultisampling)
+                    {
+                        GL.Enable(EnableCap.Multisample);
+                    }
+                    else
+                    {
+                        GL.Disable(EnableCap.Multisample);
                     }
                 }
 
