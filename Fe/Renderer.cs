@@ -313,7 +313,7 @@ namespace Fe
                     command.Instructions |= CommandInstructions.SetShaderProgram;
                 }
 
-                if (!command.Instructions.HasFlag(CommandInstructions.SetShaderProgram))
+                if (!((command.Instructions & CommandInstructions.SetShaderProgram) != CommandInstructions.None))
                 {
                     continue;
                 }
@@ -358,8 +358,8 @@ namespace Fe
                 }
 
                 // Set default blend state for anything that doesn't have one explicitly set.
-                if (command.Instructions.HasFlag(CommandInstructions.SetBlendState))
-                {
+                if ((command.Instructions & CommandInstructions.SetBlendState) != CommandInstructions.None)
+                    {
                     if (command.BlendState == null)
                     {
                         command.BlendState = _defaultBlendState;
@@ -400,7 +400,7 @@ namespace Fe
                     }
                 }
 
-                if (command.Instructions.HasFlag(CommandInstructions.SetDepthState))
+                if ((command.Instructions & CommandInstructions.SetDepthState) != CommandInstructions.None)
                 {
                     // Set default depth state for anything that doesn't have one explicitly set.
                     if (command.DepthState == null)
@@ -439,7 +439,7 @@ namespace Fe
                     }
                 }
 
-                if (command.Instructions.HasFlag(CommandInstructions.SetRasteriserState))
+                if ((command.Instructions & CommandInstructions.SetRasteriserState) != CommandInstructions.None)
                 {
                     // Set default rasteriser state for anything that doesn't have one explicitly set.
                     if (command.RasteriserState == null)
@@ -483,7 +483,7 @@ namespace Fe
 
                 bool programChanged = false;
                 bool sharedUniformsChanged = false;
-                if (command.Instructions.HasFlag(CommandInstructions.SetSharedUniforms))
+                if ((command.Instructions & CommandInstructions.SetSharedUniforms) != CommandInstructions.None)
                 {
                     // Different uniform to current state then we'll need to rebind whatever the new ones are.
                     if (command.SharedUniforms != null && command.SharedUniforms != this._currentState.SharedUniforms)
@@ -528,7 +528,7 @@ namespace Fe
 
                 // Build Vertex Buffer as appropriate
                 GLBuffer vb = null;
-                if (command.Instructions.HasFlag(CommandInstructions.SetVertexBuffer))
+                if ((command.Instructions & CommandInstructions.SetVertexBuffer) != CommandInstructions.None)
                 {
                     if (command.VertexBuffer != null)
                     {
@@ -555,7 +555,7 @@ namespace Fe
 
                 // Build Index Buffer as appropriate
                 GLBuffer ib = null;
-                if (command.Instructions.HasFlag(CommandInstructions.SetIndexBuffer))
+                if ((command.Instructions & CommandInstructions.SetIndexBuffer) != CommandInstructions.None)
                 {
                     if (command.IndexBuffer != null)
                     {
@@ -646,8 +646,8 @@ namespace Fe
                     }
                 }
 
-                if (command.Instructions.HasFlag(CommandInstructions.SetSharedUniforms))
-                {
+                if ((command.Instructions & CommandInstructions.SetSharedUniforms) != CommandInstructions.None)
+                    {
                     // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
                     if (command.SharedUniforms != null && sharedUniformsChanged)
                     {
@@ -692,15 +692,17 @@ namespace Fe
                 }
 
                 // Per command transform                
-                if (this.predefinedModelUniformLocation != -1 && command.Instructions.HasFlag(CommandInstructions.SetTransform))
-                {                    
-                    unsafe
-                    {
-                        fixed (float* matrix_ptr = &command.Transform[0])
+                if ((command.Instructions & CommandInstructions.SetTransform) != CommandInstructions.None)
+                    if(this.predefinedModelUniformLocation != -1) {
                         {
-                            GL.UniformMatrix4(this.predefinedModelUniformLocation, 1, false, matrix_ptr);
+                            unsafe
+                            {
+                                fixed (float* matrix_ptr = &command.Transform[0])
+                                {
+                                    GL.UniformMatrix4(this.predefinedModelUniformLocation, 1, false, matrix_ptr);
+                                }
+                            }
                         }
-                    }
                 }
 
                 // Texture bindings                
@@ -806,7 +808,7 @@ namespace Fe
 
                 // Work out what primitive topology we should be using
                 OpenTK.Graphics.OpenGL.PrimitiveType primType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
-                if (command.Instructions.HasFlag(CommandInstructions.SetPrimitiveType))
+                if ((command.Instructions & CommandInstructions.SetPrimitiveType) != CommandInstructions.None)
                 {
                     if (command.PrimitiveType != _currentState.PrimitiveType)
                     {
