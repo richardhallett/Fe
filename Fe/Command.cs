@@ -145,7 +145,7 @@ namespace Fe
             TextureStages[stage].TextureUniform = textureUniform;
             TextureStages[stage].TextureSampler = textureSampler;
 
-            Instructions |= (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"Texture{stage}");
+            Instructions |= (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"SetTexture{stage}");
         }
 
         //public void SetTexture(uint stage, Texture texture, Uniform textureUniform, TextureSampler textureSampler)

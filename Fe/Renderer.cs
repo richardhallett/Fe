@@ -703,7 +703,7 @@ namespace Fe
                 {
                     for (int stage = 0; stage < MaxTextureStages; stage++)
                     {
-                        var textureStageEnum = (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"Texture{stage}");
+                        var textureStageEnum = (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"SetTexture{stage}");
                         if (command.Instructions.HasFlag(textureStageEnum))
                         {
                             var currentTextureStage = _currentState.TextureStages[stage];
