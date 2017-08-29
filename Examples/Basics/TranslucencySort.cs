@@ -1,11 +1,27 @@
 ﻿
+using System.IO;
+
 namespace Fe.Examples.Basics
 {
     class TranslucencySortExample : IExample
-    {
-
-        public TranslucencySortExample()
+    {        
+        public TranslucencySortExample(Renderer renderer)
         {
+            // Create the shaders
+            Fe.Shader vertexShader, fragmentShader;
+            switch (renderer.GetRendererType())
+            {
+                case Fe.RendererType.OpenGL:
+                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("default.vert"));
+                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("default.frag"));
+                    break;
+                default:
+                    throw new System.Exception("Unknown backend renderer type");
+            }
+
+            vs = vertexShader;
+            fs = fragmentShader;
+
             // BlendState for alpha transparency.
             this._bs = new Fe.BlendState(true,
                 Fe.BlendFactor.SourceAlpha,
@@ -58,13 +74,13 @@ namespace Fe.Examples.Basics
         }
 
 
-        public void Update(CommandBucket commandBucket, ExampleData exampleData)
+        public void Update(CommandBucket commandBucket)
         {
             // Draw the translucent cube second
             var transluscentCube = commandBucket.AddCommand(2);
 
-            transluscentCube.SetShader(exampleData.DefaultVertexShader);
-            transluscentCube.SetShader(exampleData.DefaultFragmentShader);
+            transluscentCube.SetShader(vs);
+            transluscentCube.SetShader(fs);
             transluscentCube.SetBlendState(_bs);
             transluscentCube.SetVertexBuffer(_vb);
             transluscentCube.SetIndexBuffer(_ib);
@@ -75,8 +91,8 @@ namespace Fe.Examples.Basics
             // Draw the opaque cube first
             var opaqueCube = commandBucket.AddCommand(1);
 
-            opaqueCube.SetShader(exampleData.DefaultVertexShader);
-            opaqueCube.SetShader(exampleData.DefaultFragmentShader);
+            opaqueCube.SetShader(vs);
+            opaqueCube.SetShader(fs);
             opaqueCube.SetVertexBuffer(_vb);
             opaqueCube.SetIndexBuffer(_ib);
             opaqueCube.SetSharedUniforms(_opaque);
@@ -84,6 +100,8 @@ namespace Fe.Examples.Basics
             opaqueCube.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -0.4f)).ToArray());
         }
 
+        private Fe.Shader vs;
+        private Fe.Shader fs;
         private VertexBuffer<PosColorVertex> _vb;
         private IndexBuffer _ib;
         private BlendState _bs;

@@ -19,46 +19,23 @@ namespace Fe.Examples.Basics
             // Initialise the renderer
             renderer.Init();
 
-            // Create Example Data object for storing generic data we'll use across examples
-            ExampleData exampleData = new ExampleData();
-
             // Create geometry layer command bucket
             var geometryBucket = renderer.AddCommandBucket(UInt16.MaxValue);
-
-            // Create the shaders
-            Fe.Shader vertexShader, fragmentShader;
-            switch (renderer.GetRendererType())
-            {
-                case Fe.RendererType.OpenGL:
-                    vertexShader = new Fe.Shader(Fe.ShaderType.Vertex, File.ReadAllText("default.vert"));
-                    fragmentShader = new Fe.Shader(Fe.ShaderType.Fragment, File.ReadAllText("default.frag"));
-                    break;
-                default:
-                    throw new Exception("Unknown backend renderer type");
-            }
-
-            exampleData.DefaultVertexShader = vertexShader;
-            exampleData.DefaultFragmentShader = fragmentShader;
-
-            Fe.Uniform colourUniform = new Fe.Uniform("colour", Fe.UniformType.Uniform4f);
-            var defaultUniforms = new Fe.UniformBuffer();
-            defaultUniforms.Set(colourUniform, 1.0f, 1.0f, 1.0f, 1.0f);
-            exampleData.DefaultUniforms = defaultUniforms;
-
+                      
             IExample runningExample;
 
             // Example to demonstrate different primitive topologies
-            var primitivesExample = new PrimitivesExample();
+            var primitivesExample = new PrimitivesExample(renderer);
 
             // Example to demonstrate transluencey with a sort
-            var translucencySortExample = new TranslucencySortExample();
+            var translucencySortExample = new TranslucencySortExample(renderer);
 
             // Example to demonstrate transluencey with a sort
-            var texturesExample = new TexturesExample();
+            var texturesExample = new TexturesExample(renderer);
 
             // Default example to start with
             //runningExample = texturesExample;
-            runningExample = texturesExample;
+            runningExample = primitivesExample;
             var runningExampleIndex = 0;
 
             var examples = new List<IExample> {
@@ -108,7 +85,7 @@ namespace Fe.Examples.Basics
 
             void Update()
             {
-                runningExample.Update(geometryBucket, exampleData);
+                runningExample.Update(geometryBucket);
 
                 renderer.EndFrame();
             }

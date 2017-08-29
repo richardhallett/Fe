@@ -8,6 +8,6 @@ namespace Fe.Examples.Basics
 {
     interface IExample
     {
-        void Update(CommandBucket commandBucket, ExampleData exampleData);
+        void Update(CommandBucket commandBucket);
     }
 }

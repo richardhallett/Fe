@@ -37,11 +37,11 @@ namespace Fe
         {
             switch (shader.Type)
             {
-                case ShaderType.Fragment:
+                case ShaderType.Vertex:
                     VertexShader = shader;
                     Instructions |= CommandInstructions.SetVertexShader;
                     break;
-                case ShaderType.Vertex:
+                case ShaderType.Fragment:
                     FragmentShader = shader;
                     Instructions |= CommandInstructions.SetFragmentShader;
                     break;
