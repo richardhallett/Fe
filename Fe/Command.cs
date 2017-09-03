@@ -151,70 +151,6 @@ namespace Fe
             Instructions |= (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"SetTexture{stage}");
         }
 
-        //public void SetTexture(uint stage, Texture texture, Uniform textureUniform, TextureSampler textureSampler)
-        //{
-        //    TextureStage textureStage;
-        //    switch(stage)
-        //    {
-        //        case 0:
-        //            textureStage = TextureStage0;
-        //            break;
-        //        case 1:
-        //            textureStage = TextureStage1;
-        //            break;
-        //        case 2:
-        //            textureStage = TextureStage2;
-        //            break;
-        //        case 3:
-        //            textureStage = TextureStage3;
-        //            break;
-        //        case 4:
-        //            textureStage = TextureStage4;
-        //            break;
-        //        case 5:
-        //            textureStage = TextureStage5;
-        //            break;
-        //        case 6:
-        //            textureStage = TextureStage6;
-        //            break;
-        //        case 7:
-        //            textureStage = TextureStage7;
-        //            break;
-        //        case 8:
-        //            textureStage = TextureStage8;
-        //            break;
-        //        case 9:
-        //            textureStage = TextureStage9;
-        //            break;
-        //        case 10:
-        //            textureStage = TextureStage10;
-        //            break;
-        //        case 11:
-        //            textureStage = TextureStage11;
-        //            break;
-        //        case 12:
-        //            textureStage = TextureStage12;
-        //            break;
-        //        case 13:
-        //            textureStage = TextureStage13;
-        //            break;
-        //        case 14:
-        //            textureStage = TextureStage14;
-        //            break;
-        //        case 15:
-        //            textureStage = TextureStage15;
-        //            break;
-        //        default:
-        //            return;
-        //    }
-
-        //    textureStage.Texture = texture;
-        //    textureStage.TextureUniform = textureUniform;
-        //    textureStage.TextureSampler = textureSampler;
-
-        //    Instructions |= (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"Texture{stage}");
-        //}
-
         internal Shader VertexShader { get; set; }
 
         internal Shader FragmentShader { get; set; }
@@ -233,24 +169,7 @@ namespace Fe
 
         internal PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
-        internal TextureStage[] TextureStages { get; set; }
-
-        //internal TextureStage TextureStage0 { get; set; }
-        //internal TextureStage TextureStage1 { get; set; }
-        //internal TextureStage TextureStage2 { get; set; }
-        //internal TextureStage TextureStage3 { get; set; }
-        //internal TextureStage TextureStage4 { get; set; }
-        //internal TextureStage TextureStage5 { get; set; }
-        //internal TextureStage TextureStage6 { get; set; }
-        //internal TextureStage TextureStage7 { get; set; }
-        //internal TextureStage TextureStage8 { get; set; }
-        //internal TextureStage TextureStage9 { get; set; }
-        //internal TextureStage TextureStage10 { get; set; }
-        //internal TextureStage TextureStage11 { get; set; }
-        //internal TextureStage TextureStage12 { get; set; }
-        //internal TextureStage TextureStage13 { get; set; }
-        //internal TextureStage TextureStage14 { get; set; }
-        //internal TextureStage TextureStage15 { get; set; }
+        internal TextureStage[] TextureStages { get; set; }        
 
         internal float[] Transform
         {
@@ -277,64 +196,6 @@ namespace Fe
                 Instructions |= CommandInstructions.SetTransform;
             }
         }
-
-        //internal TextureStage GetTextureStage(uint stage)
-        //{
-        //    TextureStage textureStage;
-        //    switch (stage)
-        //    {
-        //        case 0:
-        //            textureStage = TextureStage0;
-        //            break;
-        //        case 1:
-        //            textureStage = TextureStage1;
-        //            break;
-        //        case 2:
-        //            textureStage = TextureStage2;
-        //            break;
-        //        case 3:
-        //            textureStage = TextureStage3;
-        //            break;
-        //        case 4:
-        //            textureStage = TextureStage4;
-        //            break;
-        //        case 5:
-        //            textureStage = TextureStage5;
-        //            break;
-        //        case 6:
-        //            textureStage = TextureStage6;
-        //            break;
-        //        case 7:
-        //            textureStage = TextureStage7;
-        //            break;
-        //        case 8:
-        //            textureStage = TextureStage8;
-        //            break;
-        //        case 9:
-        //            textureStage = TextureStage9;
-        //            break;
-        //        case 10:
-        //            textureStage = TextureStage10;
-        //            break;
-        //        case 11:
-        //            textureStage = TextureStage11;
-        //            break;
-        //        case 12:
-        //            textureStage = TextureStage12;
-        //            break;
-        //        case 13:
-        //            textureStage = TextureStage13;
-        //            break;
-        //        case 14:
-        //            textureStage = TextureStage14;
-        //            break;
-        //        case 15:
-        //            textureStage = TextureStage15;
-        //            break;
-        //    }
-
-        //    return textureStage;
-        //}
 
         private float[] _transform = new float[16];
 
