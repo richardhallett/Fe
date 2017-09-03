@@ -30,6 +30,8 @@ namespace Fe
             _commandCount = 0;
             _views = new Dictionary<byte, View>();
 
+            _shaderPrograms = new Dictionary<int, ShaderProgram>();
+
 #if RENDERER_GL
             _glProgramCache = new ResourceCache<GLShaderProgram>(MaxShaderPrograms);
             _glShaderCache = new ResourceCache<GLShader>(MaxShaderPrograms);
@@ -150,18 +152,6 @@ namespace Fe
             return bucket;
         }
 
-        ///// <summary>
-        ///// Creates a shader program.        
-        ///// </summary>
-        ///// <param name="shaders">The shaders.</param>
-        ///// <returns>A ShaderProgram that has been referenced internally by the renderer. It is the responsibility of the the user to hold onto the ShaderProgram or it will be cleaned up.</returns>
-        //public ShaderProgram CreateShaderProgram(IReadOnlyList<Shader> shaders)
-        //{
-        //    var shaderProgram = new ShaderProgram(shaders);
-        //    this._glProgramCache.Add(shaderProgram);
-        //    return shaderProgram;
-        //}        
-
         /// <summary>
         /// Stores a view against a given identifier.
         /// </summary>
@@ -201,6 +191,9 @@ namespace Fe
         {
             // Invalidate the current state
             this._currentState = new FrameState();
+
+            // Reset command bag
+            this._commandCount = 0;
 
             // Store size details
             if (width > 0)
@@ -253,17 +246,32 @@ namespace Fe
         {
 #if RENDERER_GL
             GL.Clear(OpenTK.Graphics.OpenGL.ClearBufferMask.ColorBufferBit | OpenTK.Graphics.OpenGL.ClearBufferMask.DepthBufferBit);
-
-
-            // Default state
-            //GL.FrontFace(FrontFaceDirection.Cw);
-
+            
 #endif
             // Go through each of our commands that are for this frame.
             for (int commandIndex = 0; commandIndex < this._commandCount; commandIndex++)
             {
                 // Next command to work with.
                 Command command = this._nextFrameCommands[commandIndex];
+
+                // Default instructions if we're missing any
+                if ((command.Instructions & CommandInstructions.SetBlendState) == CommandInstructions.None)
+                {
+                    // Set default blend state for anything that doesn't have one explicitly set.
+                    command.SetBlendState(_defaultBlendState);
+                }
+
+                if ((command.Instructions & CommandInstructions.SetDepthState) == CommandInstructions.None)
+                {
+                    // Set default blend state for anything that doesn't have one explicitly set.
+                    command.SetDepthState(_defaultDepthState);
+                }
+
+                if ((command.Instructions & CommandInstructions.SetRasteriserState) == CommandInstructions.None)
+                {
+                    // Set default blend state for anything that doesn't have one explicitly set.
+                    command.SetRasteriserState(_defaultRasteriserState);
+                }
 
 #if RENDERER_GL
 
@@ -283,24 +291,30 @@ namespace Fe
                     ResetViewPort(view);
                 }
 
-                // TODO: Redo this, but this time round we want to check for default shaders.
-                // For clarity atm if we have no vertex/fragment shaders we'll throw an exception this should not happen
-                //if (command.ShaderProgram == null)
-                //{
-                //    //TODO: Log the fact it skipped a command due to no shader program
-                //    continue;
-                //}
-
                 if ((command.Instructions & (CommandInstructions.SetFragmentShader | CommandInstructions.SetVertexShader)) != CommandInstructions.None)
                 {
                     if (command.VertexShader != _currentState.VertexShader ||
-                   command.FragmentShader != _currentState.FragmentShader)
+                        command.FragmentShader != _currentState.FragmentShader)
                     {
-                        // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
-                        if (command.ShaderProgram == null)
+                        // TODO: This is broken, atm if the shaders change we dont actually update the shader program
+
+                        int hash;
+                        unchecked
                         {
-                            command.ShaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
+                            hash = 17;
+                            hash = hash * 31 + command.VertexShader.GetHashCode();
+                            hash = hash * 31 + command.FragmentShader.GetHashCode();
                         }
+
+                        ShaderProgram shaderProgram;
+                        if (!_shaderPrograms.TryGetValue(hash, out shaderProgram))
+                        {
+                            // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
+                            shaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
+                            _shaderPrograms[hash] = shaderProgram;
+                        }
+
+                        command.ShaderProgram = shaderProgram;
 
                         _currentState.VertexShader = command.VertexShader;
                         _currentState.FragmentShader = command.FragmentShader;
@@ -342,7 +356,6 @@ namespace Fe
                     fragmentShader = this._glShaderCache[command.FragmentShader.ResourceIndex];
                 }
 
-
                 // Build Shader Program as appropriate     
                 GLShaderProgram program;
                 // Have we already loaded and cached a shader program.
@@ -357,118 +370,109 @@ namespace Fe
                     program = this._glProgramCache[command.ShaderProgram.ResourceIndex];
                 }
 
-                // Set default blend state for anything that doesn't have one explicitly set.
-                if (command.BlendState == null)
+                if ((command.Instructions & CommandInstructions.SetBlendState) != CommandInstructions.None)
                 {
-                    command.BlendState = _defaultBlendState;
-                }
-
-                // Is the blend state different if so we need to set it.
-                if (command.BlendState != this._currentState.BlendState)
-                {
-                    this._currentState.BlendState = command.BlendState;
-                    var bs = command.BlendState;
-
-                    if (bs.EnableBlending)
+                    // Is the blend state different if so we need to set it.
+                    if (command.BlendState != this._currentState.BlendState)
                     {
-                        GL.Enable(EnableCap.Blend);
+                        this._currentState.BlendState = command.BlendState;
+                        var bs = command.BlendState;
 
-                        var colourOp = glBlendOperationMapping[bs.ColourOperation];
-                        var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
-
-                        GL.BlendEquationSeparate(colourOp, alphaOp);
-
-                        var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
-                        var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
-                        var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
-                        var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
-
-                        GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
-
-                        if (bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
+                        if (bs.EnableBlending)
                         {
-                            GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
-                                            bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
+                            GL.Enable(EnableCap.Blend);
+
+                            var colourOp = glBlendOperationMapping[bs.ColourOperation];
+                            var alphaOp = glBlendOperationMapping[bs.AlphaOperation];
+
+                            GL.BlendEquationSeparate(colourOp, alphaOp);
+
+                            var sourceColour = glSrcBlendFactorMapping[bs.SourceBlendColour];
+                            var destColour = glDstBlendFactorMapping[bs.DestinationBlendColour];
+                            var sourceAlpha = glSrcBlendFactorMapping[bs.SourceBlendAlpha];
+                            var destAlpha = glDstBlendFactorMapping[bs.SourceBlendAlpha];
+
+                            GL.BlendFuncSeparate(sourceColour, destColour, sourceAlpha, destAlpha);
+
+                            if (bs.SourceBlendColour == BlendFactor.ConstantColour | bs.DestinationBlendColour == BlendFactor.ConstantColour && bs.BlendConstant != this._currentState.BlendState.BlendConstant)
+                            {
+                                GL.BlendColor(bs.BlendConstant.Red, bs.BlendConstant.Green,
+                                                bs.BlendConstant.Blue, bs.BlendConstant.Alpha);
+                            }
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.Blend);
                         }
                     }
-                    else
-                    {
-                        GL.Disable(EnableCap.Blend);
-                    }
-                }
-                
-                // Set default depth state for anything that doesn't have one explicitly set.
-                if (command.DepthState == null)
-                {
-                    command.DepthState = _defaultDepthState;
                 }
 
-                // Is the depth state different if so we need to set it.
-                if (command.DepthState != this._currentState.DepthState)
+                if ((command.Instructions & CommandInstructions.SetDepthState) != CommandInstructions.None)
                 {
-                    this._currentState.DepthState = command.DepthState;
-                    var ds = command.DepthState;
+                    // Is the depth state different if so we need to set it.
+                    if (command.DepthState != this._currentState.DepthState)
+                    {
+                        this._currentState.DepthState = command.DepthState;
+                        var ds = command.DepthState;
 
-                    // Depth Test
-                    if (ds.EnableDepthTest)
-                    {
-                        GL.Enable(EnableCap.DepthTest);
-                        var df = glDepthFuncMapping[ds.DepthFunc];
+                        // Depth Test
+                        if (ds.EnableDepthTest)
+                        {
+                            GL.Enable(EnableCap.DepthTest);
+                            var df = glDepthFuncMapping[ds.DepthFunc];
 
-                        GL.DepthFunc(df);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.DepthTest);
-                    }
+                            GL.DepthFunc(df);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.DepthTest);
+                        }
 
-                    // Depth write
-                    if (ds.EnableDepthWrite)
-                    {
-                        GL.DepthMask(true);
-                    }
-                    else
-                    {
-                        GL.DepthMask(false);
+                        // Depth write
+                        if (ds.EnableDepthWrite)
+                        {
+                            GL.DepthMask(true);
+                        }
+                        else
+                        {
+                            GL.DepthMask(false);
+                        }
                     }
                 }
-                
-                // Set default rasteriser state for anything that doesn't have one explicitly set.
-                if (command.RasteriserState == null)
+
+                if ((command.Instructions & CommandInstructions.SetRasteriserState) != CommandInstructions.None)
                 {
-                    command.RasteriserState = _defaultRasteriserState;
-                }
+                    // Is the rasteriser state different if so we need to set it.
+                    if (command.RasteriserState != this._currentState.RasteriserState)
+                    {
+                        this._currentState.RasteriserState = command.RasteriserState;
+                        var rs = command.RasteriserState;
 
-                // Is the rasteriser state different if so we need to set it.
-                if (command.RasteriserState != this._currentState.RasteriserState)
-                {
-                    this._currentState.RasteriserState = command.RasteriserState;
-                    var rs = command.RasteriserState;
+                        // Cull mode
+                        if (rs.CullMode == CullMode.Clockwise)
+                        {
+                            GL.Enable(EnableCap.CullFace);
+                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
+                        }
+                        else if (rs.CullMode == CullMode.CounterClockwise)
+                        {
+                            GL.Enable(EnableCap.CullFace);
+                            GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.CullFace);
+                        }
 
-                    // Cull mode
-                    if (rs.CullMode == CullMode.Clockwise)
-                    {
-                        GL.Enable(EnableCap.CullFace);
-                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Back);
-                    }
-                    else if (rs.CullMode == CullMode.CounterClockwise)
-                    {
-                        GL.Enable(EnableCap.CullFace);
-                        GL.CullFace(OpenTK.Graphics.OpenGL.CullFaceMode.Front);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.CullFace);
-                    }
-
-                    // Multisampling
-                    if (rs.EnableMultisampling)
-                    {
-                        GL.Enable(EnableCap.Multisample);
-                    }
-                    else
-                    {
-                        GL.Disable(EnableCap.Multisample);
+                        // Multisampling
+                        if (rs.EnableMultisampling)
+                        {
+                            GL.Enable(EnableCap.Multisample);
+                        }
+                        else
+                        {
+                            GL.Disable(EnableCap.Multisample);
+                        }
                     }
                 }
 
@@ -876,6 +880,8 @@ namespace Fe
         
         private View _defaultView; // Default view when none have been sent
         private Dictionary<byte, View> _views; // Stored views
+
+        private Dictionary<int, ShaderProgram> _shaderPrograms;
 
         private BlendState _defaultBlendState; // Default blend state when none has been set
         private DepthState _defaultDepthState; // Default depth state when none has been set

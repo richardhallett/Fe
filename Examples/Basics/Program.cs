@@ -39,9 +39,9 @@ namespace Fe.Examples.Basics
             var runningExampleIndex = 0;
 
             var examples = new List<IExample> {
-                texturesExample,
                 primitivesExample,
-                translucencySortExample
+                texturesExample,                
+            //    translucencySortExample
             };
 
             void ChangeExample()
