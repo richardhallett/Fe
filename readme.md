@@ -15,7 +15,7 @@ The concept was partly inspired by the excellent C++ renderer [BGFX](https://git
 
 ### Multi-threaded command submission
 Commands are instruction sets with data that can be created on any thread.
-They are not bound to one specific thread, because they are submitted and sorted before being processed sequentially (or possibly not with more advanced rendereres in the future) it means you can do a lot of setup in your code in parallel safely.
+They are not bound to one specific thread, because they are submitted and sorted before being processed sequentially (or possibly not with different backends (e.g. D3D12/Vulkan) in the future) it means you can do a lot of setup in your code in parallel safely.
 
 ### Buckets
 Use different command buckets for different aspects of the renderer, possibly for sorting or creation in specific different threads.
