@@ -477,16 +477,6 @@ namespace Fe
                 }
 
                 bool programChanged = false;
-                bool sharedUniformsChanged = false;
-                if ((command.Instructions & CommandInstructions.SetSharedUniforms) != CommandInstructions.None)
-                {
-                    // Different uniform to current state then we'll need to rebind whatever the new ones are.
-                    if (command.SharedUniforms != null && command.SharedUniforms != this._currentState.SharedUniforms)
-                    {
-                        this._currentState.SharedUniforms = command.SharedUniforms;
-                        sharedUniformsChanged = true;
-                    }
-                }
 
                 // Do we need to change the state for the current active program.                    
                 if (command.ShaderProgram != this._currentState.ShaderProgram)
@@ -516,7 +506,6 @@ namespace Fe
                     }
 
                     // Program changed, so we'll need to change the uniforms.
-                    sharedUniformsChanged = true;
                     programChanged = true;
                 }
                 
@@ -644,7 +633,7 @@ namespace Fe
                 if ((command.Instructions & CommandInstructions.SetSharedUniforms) != CommandInstructions.None)
                     {
                     // If we have a uniform buffer in the command and we've said we need to change them, then rebind them all to the current program.
-                    if (command.SharedUniforms != null && sharedUniformsChanged)
+                    if (command.SharedUniforms != null)
                     {
                         int uniformLocation;
                         foreach (var uniform in command.SharedUniforms._uniforms)
