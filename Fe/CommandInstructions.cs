@@ -9,8 +9,6 @@ namespace Fe
     {
         None = 0,
         SetShaderProgram = 1 << 1,
-        SetVertexShader = 1 << 2,
-        SetFragmentShader = 1 << 3,
         SetBlendState = 1 << 4,
         SetRasteriserState = 1 << 5,
         SetDepthState = 1 << 6,
