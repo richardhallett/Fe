@@ -58,6 +58,8 @@ namespace Fe.Examples.SplitScreen
                 default:
                     throw new Exception("Unknown backend renderer type");
             }
+
+            Fe.ShaderProgram program = new ShaderProgram(vertexShader, fragmentShader);
             
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
@@ -138,8 +140,7 @@ namespace Fe.Examples.SplitScreen
                 for (int i = 0; i < 5; i++ )
                 {
                     var cubeCommand = view1Bucket.AddCommand(1);
-                    cubeCommand.SetShader(vertexShader);
-                    cubeCommand.SetShader(fragmentShader);
+                    cubeCommand.SetShaderProgram(program);
                     cubeCommand.SetVertexBuffer(vb);
                     cubeCommand.SetIndexBuffer(ib);
 
@@ -147,8 +148,7 @@ namespace Fe.Examples.SplitScreen
                     cubeCommand.SetTransform((Nml.Matrix4x4.Translate(-6.0f + i * 3.0f, 0.0f, 0.0f) * Nml.Matrix4x4.RotateY(rotY + i * 0.32f)).ToArray());
 
                     var cubeCommand2 = view2Bucket.AddCommand(1);
-                    cubeCommand2.SetShader(vertexShader);
-                    cubeCommand2.SetShader(fragmentShader);
+                    cubeCommand2.SetShaderProgram(program);
                     cubeCommand2.SetVertexBuffer(vb);
                     cubeCommand2.SetIndexBuffer(ib);
 

@@ -33,19 +33,10 @@ namespace Fe
             PrimitiveType = PrimitiveType.Triangles;
         }
 
-        public void SetShader(Shader shader)
+        public void SetShaderProgram(ShaderProgram program)
         {
-            switch (shader.Type)
-            {
-                case ShaderType.Vertex:
-                    VertexShader = shader;
-                    Instructions |= CommandInstructions.SetVertexShader;
-                    break;
-                case ShaderType.Fragment:
-                    FragmentShader = shader;
-                    Instructions |= CommandInstructions.SetFragmentShader;
-                    break;
-            }
+            this.ShaderProgram = program;
+            Instructions |= CommandInstructions.SetShaderProgram;
         }
 
         public void SetVertexBuffer(Buffer vb)
@@ -150,10 +141,6 @@ namespace Fe
 
             Instructions |= (CommandInstructions)Enum.Parse(typeof(CommandInstructions), $"SetTexture{stage}");
         }
-
-        internal Shader VertexShader { get; set; }
-
-        internal Shader FragmentShader { get; set; }
 
         internal BlendState BlendState { get; set; }
 

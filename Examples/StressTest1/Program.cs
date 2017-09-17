@@ -65,6 +65,8 @@ namespace Fe.Examples.StressTest1
                     throw new Exception("Unknown backend renderer type");
             }
 
+            Fe.ShaderProgram program = new ShaderProgram(vertexShader, fragmentShader);
+
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
             {
@@ -188,8 +190,7 @@ namespace Fe.Examples.StressTest1
 
                             var cubeCommand = geometryBucket.AddCommand(1);
 
-                            cubeCommand.SetShader(vertexShader);
-                            cubeCommand.SetShader(fragmentShader);
+                            cubeCommand.SetShaderProgram(program);
                             cubeCommand.SetVertexBuffer(vb);
                             cubeCommand.SetIndexBuffer(ib);
 

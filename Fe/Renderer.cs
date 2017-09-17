@@ -291,73 +291,39 @@ namespace Fe
                     ResetViewPort(view);
                 }
 
-                if ((command.Instructions & (CommandInstructions.SetFragmentShader | CommandInstructions.SetVertexShader)) != CommandInstructions.None)
-                {
-                    if (command.VertexShader != _currentState.VertexShader ||
-                        command.FragmentShader != _currentState.FragmentShader)
-                    {
-                        // TODO: This is broken, atm if the shaders change we dont actually update the shader program
-
-                        int hash;
-                        unchecked
-                        {
-                            hash = 17;
-                            hash = hash * 31 + command.VertexShader.GetHashCode();
-                            hash = hash * 31 + command.FragmentShader.GetHashCode();
-                        }
-
-                        ShaderProgram shaderProgram;
-                        if (!_shaderPrograms.TryGetValue(hash, out shaderProgram))
-                        {
-                            // If we havn't actually got a shader program set on the command then we'll build a new data structure out of shaders on the command.
-                            shaderProgram = new ShaderProgram(new Shader[] { command.VertexShader, command.FragmentShader });
-                            _shaderPrograms[hash] = shaderProgram;
-                        }
-
-                        command.ShaderProgram = shaderProgram;
-
-                        _currentState.VertexShader = command.VertexShader;
-                        _currentState.FragmentShader = command.FragmentShader;
-                    }
-                    else
-                    {
-                        command.ShaderProgram = _currentState.ShaderProgram;
-                    }
-
-                    command.Instructions |= CommandInstructions.SetShaderProgram;
-                }
-
                 if (!((command.Instructions & CommandInstructions.SetShaderProgram) != CommandInstructions.None))
                 {
+                    //TODO: Debug log that we dont have any program set so skipping the command instruction.
                     continue;
                 }
 
                 GLShader vertexShader;
-                if (!command.VertexShader.Created)
+                GLShader fragmentShader;
+                GLShaderProgram program;
+                if (!command.ShaderProgram.VertexShader.Created)
                 {
                     // Build a OpenGL shader from our commands vertex shader data.
-                    vertexShader = new GLShader(command.VertexShader);
-                    this._glShaderCache.Add(command.VertexShader, vertexShader);
+                    vertexShader = new GLShader(command.ShaderProgram.VertexShader);
+                    this._glShaderCache.Add(command.ShaderProgram.VertexShader, vertexShader);
                 }
                 else
                 {
-                    vertexShader = this._glShaderCache[command.VertexShader.ResourceIndex];
+                    vertexShader = this._glShaderCache[command.ShaderProgram.VertexShader.ResourceIndex];
                 }
 
-                GLShader fragmentShader;
-                if (!command.FragmentShader.Created)
+                if (!command.ShaderProgram.FragmentShader.Created)
                 {
                     // Build a OpenGL shader from our commands vertex shader data.
-                    fragmentShader = new GLShader(command.FragmentShader);
-                    this._glShaderCache.Add(command.FragmentShader, fragmentShader);
+                    fragmentShader = new GLShader(command.ShaderProgram.FragmentShader);
+                    this._glShaderCache.Add(command.ShaderProgram.FragmentShader, fragmentShader);
                 }
                 else
                 {
-                    fragmentShader = this._glShaderCache[command.FragmentShader.ResourceIndex];
+                    fragmentShader = this._glShaderCache[command.ShaderProgram.FragmentShader.ResourceIndex];
                 }
 
                 // Build Shader Program as appropriate     
-                GLShaderProgram program;
+                    
                 // Have we already loaded and cached a shader program.
                 if (!command.ShaderProgram.Created)
                 {
@@ -813,13 +779,13 @@ namespace Fe
                         GL.DrawArrays(primType, 0, vb.Size);
                     }
                 }
-#endif
-
+#endif                
             }  // End of command list
 
 #if RENDERER_GL    
             _context.SwapBuffers();
 #endif
+
         }
 
         /// <summary>

@@ -22,6 +22,8 @@ namespace Fe.Examples.Basics
             vs = vertexShader;
             fs = fragmentShader;
 
+            program = new ShaderProgram(vs, fs);
+
             // BlendState for alpha transparency.
             this._bs = new Fe.BlendState(true,
                 Fe.BlendFactor.SourceAlpha,
@@ -79,8 +81,7 @@ namespace Fe.Examples.Basics
             // Draw the translucent cube second
             var transluscentCube = commandBucket.AddCommand(2);
 
-            transluscentCube.SetShader(vs);
-            transluscentCube.SetShader(fs);
+            transluscentCube.SetShaderProgram(program);
             transluscentCube.SetBlendState(_bs);
             transluscentCube.SetVertexBuffer(_vb);
             transluscentCube.SetIndexBuffer(_ib);
@@ -91,8 +92,7 @@ namespace Fe.Examples.Basics
             // Draw the opaque cube first
             var opaqueCube = commandBucket.AddCommand(1);
 
-            opaqueCube.SetShader(vs);
-            opaqueCube.SetShader(fs);
+            opaqueCube.SetShaderProgram(program);
             opaqueCube.SetVertexBuffer(_vb);
             opaqueCube.SetIndexBuffer(_ib);
             opaqueCube.SetSharedUniforms(_opaque);
@@ -102,6 +102,7 @@ namespace Fe.Examples.Basics
 
         private Fe.Shader vs;
         private Fe.Shader fs;
+        private Fe.ShaderProgram program;
         private VertexBuffer<PosColorVertex> _vb;
         private IndexBuffer _ib;
         private BlendState _bs;

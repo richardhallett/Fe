@@ -8,6 +8,7 @@ namespace Fe.Examples.Basics
     {
         Fe.Shader vs;
         Fe.Shader fs;
+        Fe.ShaderProgram program;
         Fe.Texture2d<Color> texture;
         Fe.TextureSampler textureSampler;
         Fe.Uniform colourMapUniform;
@@ -29,6 +30,8 @@ namespace Fe.Examples.Basics
 
             vs = vertexShader;
             fs = fragmentShader;
+
+            program = new ShaderProgram(vs, fs);
 
             var cube = new Fe.Extra.Geometry.Cube();
 
@@ -91,8 +94,7 @@ namespace Fe.Examples.Basics
         {
             var cube = commandBucket.AddCommand(2);
 
-            cube.SetShader(vs);
-            cube.SetShader(fs);
+            cube.SetShaderProgram(program);
             cube.SetVertexBuffer(_vb);
             cube.SetIndexBuffer(_ib);
             cube.SetSharedUniforms(_ub);

@@ -7,26 +7,35 @@ using System.Threading.Tasks;
 namespace Fe
 {
     /// <summary>
-    /// An internal helper for wrapping shaders in a shader program.
     /// Combines multiple shader stages built from <see cref="Shader"/> objects into a single program that can then be bound to be used in the rendering pipeline.
     /// </summary>
-    internal class ShaderProgram : GraphicsResource
+    public class ShaderProgram : GraphicsResource
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderProgram"/> class.
+        /// Initializes a new instance of the <see cref="ShaderProgram" /> class.
         /// </summary>
-        /// <param name="shaders">The shaders to link together.</param>
-        public ShaderProgram(IReadOnlyList<Shader> shaders)
+        /// <param name="vertexShader">The vertex shader.</param>
+        /// <param name="fragmentShader">The fragment shader.</param>
+        public ShaderProgram(Shader vertexShader, Shader fragmentShader)
         {
-            this.Shaders = shaders;
+            this.VertexShader = vertexShader;
+            this.FragmentShader = fragmentShader;
         }
 
         /// <summary>
-        /// Gets or sets the shaders.
+        /// Gets or sets the vertex shader.
         /// </summary>
         /// <value>
-        /// The shaders.
+        /// The vertex shader.
         /// </value>
-        public IReadOnlyList<Shader> Shaders { get; private set; }
+        internal Shader VertexShader { get; set; }
+
+        /// <summary>
+        /// Gets or sets the fragment shader.
+        /// </summary>
+        /// <value>
+        /// The fragment shader.
+        /// </value>
+        internal Shader FragmentShader { get; set; }
     }
 }

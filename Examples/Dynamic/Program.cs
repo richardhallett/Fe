@@ -61,6 +61,8 @@ namespace Fe.Examples.Dynamic
                 default:
                     throw new Exception("Unknown backend renderer type");
             }
+
+            Fe.ShaderProgram program = new ShaderProgram(vertexShader, fragmentShader);
             
             // Build plane data
             var plane = new Fe.Extra.Geometry.Plane(30, 30, 30, 30);
@@ -129,8 +131,7 @@ namespace Fe.Examples.Dynamic
 
                 var cubeCommand = geometryBucket.AddCommand(1);
 
-                cubeCommand.SetShader(vertexShader);
-                cubeCommand.SetShader(fragmentShader);
+                cubeCommand.SetShaderProgram(program);
                 cubeCommand.SetVertexBuffer(vb);
                 cubeCommand.SetIndexBuffer(ib);
                 cubeCommand.SetSharedUniforms(sharedUniforms);

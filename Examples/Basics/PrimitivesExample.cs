@@ -23,6 +23,8 @@ namespace Fe.Examples.Basics
             vs = vertexShader;
             fs = fragmentShader;
 
+            program = new ShaderProgram(vs, fs);
+
             // Vertices that make up a cube.
             PosColorVertex[] vertices =
             {
@@ -46,8 +48,7 @@ namespace Fe.Examples.Basics
 
             // Draw a single triangle
             var tri = commandBucket.AddCommand(0);
-            tri.SetShader(vs);
-            tri.SetShader(fs);
+            tri.SetShaderProgram(program);
             tri.SetVertexBuffer(_vb);
             tri.SetPrimitiveType(PrimitiveType.Triangles);
             tri.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -2.0f)).ToArray());
@@ -55,8 +56,7 @@ namespace Fe.Examples.Basics
 
             // Draw a square using triangle strips
             var triStrip = commandBucket.AddCommand(0);
-            triStrip.SetShader(vs);
-            triStrip.SetShader(fs);
+            triStrip.SetShaderProgram(program);
             triStrip.SetVertexBuffer(_vb);
             triStrip.SetPrimitiveType(PrimitiveType.TriangleStrip);
             triStrip.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -0.9f)).ToArray());
@@ -64,8 +64,7 @@ namespace Fe.Examples.Basics
 
             // Draw 2 vertical lines
             var lines = commandBucket.AddCommand(0);
-            lines.SetShader(vs);
-            lines.SetShader(fs);
+            lines.SetShaderProgram(program);
             lines.SetVertexBuffer(_vb);
             lines.SetPrimitiveType(PrimitiveType.Lines);
             lines.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: 0.2f)).ToArray());
@@ -73,8 +72,7 @@ namespace Fe.Examples.Basics
 
             // Draw connected lines
             var lineStrip = commandBucket.AddCommand(0);
-            lineStrip.SetShader(vs);
-            lineStrip.SetShader(fs);
+            lineStrip.SetShaderProgram(program);
             lineStrip.SetVertexBuffer(_vb);
             lineStrip.SetPrimitiveType(PrimitiveType.LineStrip);
             lineStrip.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(y: -1.1f)).ToArray());
@@ -82,8 +80,7 @@ namespace Fe.Examples.Basics
 
             // Draw points
             var points = commandBucket.AddCommand(0);
-            points.SetShader(vs);
-            points.SetShader(fs);
+            points.SetShaderProgram(program);
             points.SetVertexBuffer(_vb);
             points.SetPrimitiveType(PrimitiveType.Points);
             points.SetTransform(Nml.Matrix4x4.Translate(new Nml.Vector3(x: -1.2f, y: -1.1f)).ToArray());
@@ -93,6 +90,7 @@ namespace Fe.Examples.Basics
         private UniformBuffer defaultUniforms;
         private Shader vs;
         private Shader fs;
+        private ShaderProgram program;
         private VertexBuffer<PosColorVertex> _vb;
     }
 }
