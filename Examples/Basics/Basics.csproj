@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="ImageSharp" Version="1.0.0-alpha5-00046" />
+    <PackageReference Include="nml" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
