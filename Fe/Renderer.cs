@@ -273,6 +273,16 @@ namespace Fe
                     command.SetRasteriserState(_defaultRasteriserState);
                 }
 
+                // Default shaders in case someone decided to pass us empty shaders
+                if(String.IsNullOrEmpty(command.ShaderProgram.VertexShader.Data)) {
+                    command.ShaderProgram.VertexShader.Data = DefaultVertexShaderCode;
+                }
+                if (String.IsNullOrEmpty(command.ShaderProgram.FragmentShader.Data))
+                {
+                    command.ShaderProgram.FragmentShader.Data = DefaultFragmentShaderCode;
+                }
+
+
 #if RENDERER_GL
 
                 bool viewChanged = false;
@@ -811,6 +821,35 @@ namespace Fe
             }
 #endif
         }
+
+        internal string DefaultVertexShaderCode { get; set; } =
+#if RENDERER_GL
+            @"
+            // Fe Default Vertex Code
+            #version 330
+            layout(location = 0) in vec3 position;
+            void main()
+            {	
+	            gl_Position = vec4(position, 1.0f);	
+            }
+        ";
+#else
+        "";
+#endif
+        internal string DefaultFragmentShaderCode { get; set; } =
+#if RENDERER_GL
+            @"
+            // Fe Default Fragment Code
+            #version 330
+            out vec4 outputColor;
+            void main()
+            {
+               outputColor = vec4(1.0,0.0,0.0,1.0);
+            }
+        ";
+#else
+        "";
+#endif
 
         // Constants
         private const int MaxShaderPrograms = 512;

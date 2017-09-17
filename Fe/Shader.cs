@@ -25,12 +25,12 @@ namespace Fe
         /// <summary>
         /// Gets the type of this shader.
         /// </summary>
-        public ShaderType Type {get; private set; }
+        public ShaderType Type {get; internal set; }
 
         /// <summary>
         /// The shader.
         /// </summary>
-        public String Data {get; private set; }
+        public String Data {get; internal set; }
 
     }
 }
