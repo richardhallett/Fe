@@ -36,6 +36,14 @@ namespace Fe
         /// </value>
         internal ushort Size { get; private set; }
 
+        internal bool IsFull
+        {
+            get
+            {
+                return _handles.Count == 0;
+            }
+        }
+
         /// <summary>
         /// Adds the specified graphics resource to the cache, this sets the underlying core resource at the same time
         /// </summary>
@@ -47,7 +55,7 @@ namespace Fe
             if (_handles.Count == 0)
             {
                 //Debug.WriteLine("Failed to create cached object of type " + this.Name);
-                return;
+                throw new Exception("Resource cache full of type " + this.GetType().ToString());
             }
 
             var handleIndex = _handles.Pop();
@@ -146,6 +154,9 @@ namespace Fe
                     }
 
                     _cacheLookup.Remove(handleIndex);
+
+                    // Push the handle back on the stack as we can use it again.
+                    _handles.Push(handleIndex);
                 }
 
                 // Look for stuff that needs to be cleaned.
